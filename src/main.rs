@@ -7,7 +7,7 @@ const CHARMAP_EMPTY: &'static [char] = &[];
 const CHARMAP_SR_CYR: &'static [char] = &[
     'А', 'Б', 'В', 'Г', 'Д', 'Ђ', 'Е', 'Ж', 'З', 'И', 'Ј', 'К', 'Л', 'Љ', 'М', 'Н', 'Њ', 'О', 'П',
     'Р', 'С', 'Т', 'Ћ', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Џ', 'Ш', 'a', 'б', 'в', 'г', 'д', 'ђ', 'e', 'ж',
-    'З', 'и', 'j', 'к', 'л', 'љ', 'м', 'н', 'њ', 'o', 'п', 'р', 'с', 'т', 'ћ', 'у', 'ф', 'х', 'ц',
+    'з', 'и', 'j', 'к', 'л', 'љ', 'м', 'н', 'њ', 'o', 'п', 'р', 'с', 'т', 'ћ', 'у', 'ф', 'х', 'ц',
     'ч', 'џ', 'ш',
 ];
 
@@ -237,5 +237,59 @@ fn main() -> Result<(), Error> {
         proc.process(input, output)
     } else {
         unreachable!()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn process_no_changes_empty() -> Result<(), Error> {
+        let mut proc = Processor::new();
+        let input = String::from("ã$âÕÝ=¼ÜyÌÈo-P©6ë1M»¡u9-ú{K=/NMd");
+        let mut output = Vec::new();
+        proc.process(&mut input.as_bytes(), &mut output)?;
+        assert_eq!(input, String::from_utf8_lossy(&output));
+        Ok(())
+    }
+
+    #[test]
+    fn process_no_changes_lat() -> Result<(), Error> {
+        let mut proc = Processor::new();
+        proc.tables(CHARMAP_SR_LAT, CHARMAP_SR_LAT)?;
+        let input = String::from("ã$âÕÝ=¼ÜyÌÈo-P©6ë1M»¡u9-ú{K=/NMd");
+        let mut output = Vec::new();
+        proc.process(&mut input.as_bytes(), &mut output)?;
+        assert_eq!(input, String::from_utf8_lossy(&output));
+        Ok(())
+    }
+
+    #[test]
+    fn process_lat_to_cyr() -> Result<(), Error> {
+        let mut proc = Processor::new();
+        proc.tables(CHARMAP_SR_LAT, CHARMAP_SR_CYR)?;
+        let input = String::from("ABVGDĐEŽZIJKLǈMNǋOPRSTĆUFHCČǅŠabvgdđežzijklǉmnǌoprstćufhcčǆš");
+        let mut output = Vec::new();
+        proc.process(&mut input.as_bytes(), &mut output)?;
+        assert_eq!(
+            String::from_utf8_lossy(&output),
+            "АБВГДЂЕЖЗИЈКЛЉМНЊОПРСТЋУФХЦЧЏШaбвгдђeжзиjклљмнњoпрстћуфхцчџш"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn process_mixed_to_cyr() -> Result<(), Error> {
+        let mut proc = Processor::new();
+        proc.tables(CHARMAP_SR_LAT, CHARMAP_SR_CYR)?;
+        let input = String::from("ABVGDЂЕЖЗИЈКЛЉМNǋOPRСТЋУФHCČǅŠaбвгдђeжзиjклљмnǌoprstćufhcčǆš");
+        let mut output = Vec::new();
+        proc.process(&mut input.as_bytes(), &mut output)?;
+        assert_eq!(
+            String::from_utf8_lossy(&output),
+            "АБВГДЂЕЖЗИЈКЛЉМНЊОПРСТЋУФХЦЧЏШaбвгдђeжзиjклљмнњoпрстћуфхцчџш"
+        );
+        Ok(())
     }
 }
