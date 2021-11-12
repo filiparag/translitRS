@@ -5,3 +5,4 @@ edition = "2021"
 authors = ["Filip Parag <filip@parag.rs>"]
 
 [dependencies]
+phf = { version = ">=0.10", features = ["macros"] }
