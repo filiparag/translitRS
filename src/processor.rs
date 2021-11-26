@@ -1,13 +1,13 @@
-use std::fmt::{self};
+use std::fmt;
 use std::io::{self, Read, Write};
-use std::str::{self, Utf8Error};
+use std::str;
 use subslice::bmh;
 
 use super::charmaps;
 
 const CONSUMED_BUFFER: usize = 8;
 const DIGESTED_BUFFER: usize = 32;
-const LASTWORD_BUFFER: usize = 64;
+const LASTWORD_BUFFER: usize = 128;
 
 #[allow(dead_code)]
 pub struct StreamProcessor {
@@ -71,5 +71,92 @@ impl StreamProcessor {
         }
     }
 
+    fn consume<'a>(&mut self, raw: &'a [u8]) -> Result<usize, usize> {
+        let (chunk, overflow) = if self.consumed + raw.len() >= CONSUMED_BUFFER {
+            (CONSUMED_BUFFER - self.consumed, true)
+        } else {
+            (raw.len(), false)
+        };
+        self.buffer_consumed[self.consumed..self.consumed + chunk].copy_from_slice(&raw[..chunk]);
+        self.consumed += chunk;
+        if overflow {
+            Err(chunk)
+        } else {
+            Ok(chunk)
+        }
+    }
+
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[allow(dead_code)]
+    const EXAMPLES: &'static [(&str, &str)] = &[
+        ("", ""),
+        ("1234567890", "1234567890"),
+        (
+            "ABVGDĐEŽZIJKLLjMNNjOPRSTĆUFHCČDžŠabvgdđežzijklljmnnjoprstćufhcčdžš",
+            "АБВГДЂЕЖЗИЈКЛЉМНЊОПРСТЋУФХЦЧЏШабвгдђежзијклљмнњопрстћуфхцчџш",
+        ),
+        (
+            "Stala mala Mara na kraj stara hana sama.",
+            "Стала мала Мара на крај стара хана сама.",
+        ),
+        (
+            "Nevesele snene žene plele teške mreže",
+            "Невеселе снене жене плеле тешке мреже",
+        ),
+        (
+            "Javorov jaram, javorova ralica, ralo drvo javorovo.",
+            "Јаворов јарам, јаворова ралица, рало дрво јаворово.",
+        ),
+        (
+            "Jesi li to ti to tu? Jesi li to tu ti? Jesi li to ti tu? Jesi li tu ti to?",
+            "Јеси ли то ти то ту? Јеси ли то ту ти? Јеси ли то ти ту? Јеси ли ту ти то?",
+        ),
+        (
+            "Adjektivisati|ZABLUDJE|odžvać|PredŽivot|kenjon|konjug|TANJug",
+            "Адјективисати|ЗАБЛУДЈЕ|оджваћ|ПредЖивот|кенјон|конјуг|ТАНЈуг",
+        ),
+        (
+            "ABVGDĐÐDJDjEZŽŽIJKLLJǇLjǈMNNJǊNjǋOPRSTĆĆUFHCČČDŽǄDŽDžǅDžŠŠ",
+            "АБВГДЂЂЂЂЕЗЖЖИЈКЛЉЉЉЉМНЊЊЊЊОПРСТЋЋУФХЦЧЧЏЏЏЏЏЏШШ",
+        ),
+        (
+            "aæbvgdđdjezžžiĳjklljǉmnnjǌoœprsﬆtććufﬁﬂhcččdžǆdžšš",
+            "ааебвгдђђезжжиијјклљљмнњњооепрссттћћуффифлхцччџџџшш",
+        ),
+        (
+            "ABVGDĐÐDJDjezžžiĳjklljǉMNNJǊNjǋOPRsﬆtććufﬁﬂhcččdžǄDŽDžǅDžŠŠ",
+            "АБВГДЂЂЂЂезжжиијјклљљМНЊЊЊЊОПРссттћћуффифлхцччџЏЏЏЏЏШШ",
+        ),
+    ];
+
+    #[test]
+    fn test_consume() -> Result<(), usize> {
+        for e in 0..CONSUMED_BUFFER {
+            let mut proc = StreamProcessor::new(Direction::LatToCyr);
+            proc.buffer_consumed[..e].copy_from_slice(&EXAMPLES[e].0.as_bytes()[..e]);
+            let mut consumed: usize = 0;
+            while consumed < EXAMPLES[e].0.as_bytes().len() {
+                match proc.consume(&EXAMPLES[e].0.as_bytes()[consumed..]) {
+                    Ok(v) => {
+                        consumed += v;
+                        break;
+                    }
+                    Err(v) => {
+                        consumed += v;
+                        // Fake digest
+                        proc.digested = 0;
+                        proc.consumed = 0;
+                        // Clear buffer
+                        proc.buffer_consumed = [0u8; CONSUMED_BUFFER];
+                    }
+                }
+}
+        }
+        Ok(())
+    }
 }
