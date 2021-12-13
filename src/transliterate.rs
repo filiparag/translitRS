@@ -1,4 +1,4 @@
-use std::{fmt, io, str, string};
+use std::{cmp, fmt, io, str, string};
 use subslice::bmh;
 
 mod charmaps;
@@ -174,16 +174,34 @@ impl Transliterate {
     }
 
     pub fn process<S: AsRef<str>>(&self, input: S) -> Result<String, Error> {
-        let mut output = String::with_capacity(input.as_ref().len());
-        let words = input.as_ref().split_whitespace();
-        for w in words {
-            let res = self.process_word(w)?;
-            // eprintln!("Processing {}", w);
-            // eprintln!("         = {}", res);
-            output.push_str(&res);
-            output.push(' ')
+        let input = input.as_ref();
+        let mut output = String::with_capacity(input.len());
+        let mut cursor_left = 0;
+        let next_occurence = |left: usize, whitespace: bool| -> usize {
+            let criterion = match whitespace {
+                true => char::is_whitespace,
+                false => |c: char| !c.is_whitespace(),
+            };
+            if let Some(res) = input[left..].find(criterion) {
+                cmp::max(left + res, input.len())
+            } else {
+                input.len()
+            }
+        };
+        let mut whitespace: bool = false;
+        while cursor_left < input.len() {
+            let cursor_right = next_occurence(cursor_left, whitespace);
+            if !whitespace {
+                let res = self.process_word(&input[cursor_left..cursor_right])?;
+                output.push_str(&res);
+            } else {
+                // Skip processing space characters
+                output.push_str(&input[cursor_left..cursor_right]);
+            }
+            cursor_left += cursor_right;
+            // Toggle between processing whitespace and other characters
+            whitespace = !whitespace;
         }
-        output.pop();
         Ok(output)
     }
 }
