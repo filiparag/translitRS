@@ -1,18 +1,18 @@
 #[allow(dead_code)]
-pub const SEPARATORS: &'static [char] = &[
+pub const SEPARATORS: &[char] = &[
     '\u{0020}', '\u{00A0}', '\u{1680}', '\u{180E}', '\u{2000}', '\u{2001}', '\u{2002}', '\u{2003}',
     '\u{2004}', '\u{2005}', '\u{2006}', '\u{2007}', '\u{2008}', '\u{2009}', '\u{200A}', '\u{200B}',
     '\u{202F}', '\u{205F}', '\u{3000}', '\u{FEFF}',
 ];
 
 #[allow(dead_code)]
-pub const EMPTY: &'static [&'static [char]] = &[];
+pub const EMPTY: &[&[char]] = &[];
 
 // Borrowed from Jovan Turanjanin's Ćirilizator
 // https://github.com/turanjanin/cirilizator
 
 #[allow(dead_code)]
-pub const LATIN_CLEAN: &'static [&'static [char]] = &[
+pub const LATIN_CLEAN: &[&[char]] = &[
     &['A'],
     &['B'],
     &['V'],
@@ -79,7 +79,7 @@ pub const LATIN_CLEAN: &'static [&'static [char]] = &[
 ];
 
 #[allow(dead_code)]
-pub const LATIN_CLEAN_UNICODE: &'static [&'static [char]] = &[
+pub const LATIN_CLEAN_UNICODE: &[&[char]] = &[
     &['A'],
     &['B'],
     &['V'],
@@ -146,7 +146,7 @@ pub const LATIN_CLEAN_UNICODE: &'static [&'static [char]] = &[
 ];
 
 #[allow(dead_code)]
-pub const CYRILLIC_CLEAN: &'static [&'static [char]] = &[
+pub const CYRILLIC_CLEAN: &[&[char]] = &[
     &['А'],
     &['Б'],
     &['В'],
@@ -213,7 +213,7 @@ pub const CYRILLIC_CLEAN: &'static [&'static [char]] = &[
 ];
 
 #[allow(dead_code)]
-pub const LATIN_DIRTY: &'static [&'static [char]] = &[
+pub const LATIN_DIRTY: &[&[char]] = &[
     &['A'],
     &['B'],
     &['V'],
@@ -310,7 +310,7 @@ pub const LATIN_DIRTY: &'static [&'static [char]] = &[
 ];
 
 #[allow(dead_code)]
-pub const LATIN_DIRTY_UNICODE: &'static [&'static [char]] = &[
+pub const LATIN_DIRTY_UNICODE: &[&[char]] = &[
     &['A'],
     &['B'],
     &['V'],
@@ -407,7 +407,7 @@ pub const LATIN_DIRTY_UNICODE: &'static [&'static [char]] = &[
 ];
 
 #[allow(dead_code)]
-pub const CYRILLIC_DIRTY: &'static [&'static [char]] = &[
+pub const CYRILLIC_DIRTY: &[&[char]] = &[
     &['А'],
     &['Б'],
     &['В'],
@@ -511,7 +511,7 @@ pub struct DigraphException<'a> {
 }
 
 #[allow(dead_code)]
-pub const DIGRAPH_EXCEPTIONS: &'static [DigraphException<'static>] = &[
+pub const DIGRAPH_EXCEPTIONS: &[DigraphException<'static>] = &[
     DigraphException {
         latin: &[
             &['Đ'],
@@ -576,7 +576,7 @@ pub const DIGRAPH_EXCEPTIONS: &'static [DigraphException<'static>] = &[
 ];
 
 #[allow(dead_code)]
-pub const DIGRAPH_EXCEPTIONS_DJ: &'static [&'static str] = &[
+pub const DIGRAPH_EXCEPTIONS_DJ: &[&str] = &[
     "adjektiv",
     "adjunkt",
     "bazdje",
@@ -797,7 +797,7 @@ pub const DIGRAPH_EXCEPTIONS_DJ: &'static [&'static str] = &[
 ];
 
 #[allow(dead_code)]
-pub const DIGRAPH_EXCEPTIONS_DZ: &'static [&'static str] = &[
+pub const DIGRAPH_EXCEPTIONS_DZ: &[&str] = &[
     "feldžandarm",
     "nadžanj",
     "nadždrel",
@@ -831,7 +831,7 @@ pub const DIGRAPH_EXCEPTIONS_DZ: &'static [&'static str] = &[
 ];
 
 #[allow(dead_code)]
-pub const DIGRAPH_EXCEPTIONS_NJ: &'static [&'static str] = &[
+pub const DIGRAPH_EXCEPTIONS_NJ: &[&str] = &[
     "anjon",
     "injaric",
     "injekc",

@@ -128,11 +128,11 @@ fn main() -> Result<(), Error> {
         }
     }
 
-    if let None = input {
+    if input.is_none() {
         input = Some(Box::leak(Box::from(io::stdin())));
     }
 
-    if let None = output {
+    if output.is_none() {
         output = Some(Box::leak(Box::from(io::stdout())));
     }
 
@@ -142,7 +142,7 @@ fn main() -> Result<(), Error> {
         let mut input_string = String::new();
         input.read_to_string(&mut input_string)?;
         let output_string = proc.process(input_string)?;
-        output.write(output_string.as_bytes())?;
+        output.write_all(output_string.as_bytes())?;
     } else {
         unreachable!()
     }

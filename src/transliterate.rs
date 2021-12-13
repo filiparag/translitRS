@@ -19,20 +19,20 @@ pub struct Transliterate {
 pub enum Error {
     EmptyDigest,
     BufferOverflow,
-    IoError(io::Error),
-    UTFError(str::Utf8Error),
-    FromUTFError(string::FromUtf8Error),
+    Io(io::Error),
+    Utf8(str::Utf8Error),
+    FromUtf8(string::FromUtf8Error),
 }
 
 impl From<str::Utf8Error> for Error {
     fn from(error: str::Utf8Error) -> Self {
-        Self::UTFError(error)
+        Self::Utf8(error)
     }
 }
 
 impl From<string::FromUtf8Error> for Error {
     fn from(error: string::FromUtf8Error) -> Self {
-        Self::FromUTFError(error)
+        Self::FromUtf8(error)
     }
 }
 
@@ -41,9 +41,9 @@ impl fmt::Debug for Error {
         match self {
             Self::EmptyDigest => writeln!(f, "Digest is empty"),
             Self::BufferOverflow => writeln!(f, "Buffer Overflow"),
-            Self::IoError(e) => writeln!(f, "IO error - {}", e),
-            Self::UTFError(e) => writeln!(f, "UTF-8 error - {}", e),
-            Self::FromUTFError(e) => writeln!(f, "From UTF-8 error - {}", e),
+            Self::Io(e) => writeln!(f, "IO error - {}", e),
+            Self::Utf8(e) => writeln!(f, "UTF-8 error - {}", e),
+            Self::FromUtf8(e) => writeln!(f, "From UTF-8 error - {}", e),
         }
     }
 }
@@ -120,8 +120,7 @@ impl Transliterate {
         for exception in charmaps::DIGRAPH_EXCEPTIONS {
             for i in 0..exception.latin.len() {
                 if exception.latin[i] == character {
-                    let mut lowercase: Vec<u8> = Vec::with_capacity(word.len() * 4);
-                    lowercase.resize(word.len() * 4, 0);
+                    let mut lowercase: Vec<u8> = vec![0; word.len() * 4];
                     let mut cursor: usize = 0;
                     for letter in word {
                         for c in letter.to_lowercase() {
@@ -129,7 +128,7 @@ impl Transliterate {
                         }
                     }
                     for e in exception.exceptions {
-                        if let Some(_) = bmh::find(&lowercase, e.as_bytes()) {
+                        if bmh::find(&lowercase, e.as_bytes()).is_some() {
                             return Ok(Some(exception.cyrillic[i]));
                         }
                     }
@@ -140,13 +139,10 @@ impl Transliterate {
     }
 
     fn process_word(&self, word: &str) -> Result<String, Error> {
-        let mut out: Vec<u8> = Vec::with_capacity(word.len() * 4);
-        out.resize(word.len() * 4, 0);
+        let mut out: Vec<u8> = vec![0; word.len() * 4];
         let chars = word.chars().into_iter().collect::<Vec<char>>();
-
         let mut cursor_in: usize = 0;
         let mut cursor_out: usize = 0;
-
         'outer: while cursor_in < chars.len() {
             for (i, c) in self.charset_from.iter().enumerate().rev() {
                 if chars[cursor_in..].starts_with(c) {
@@ -285,7 +281,6 @@ mod tests {
 
     #[test]
     fn test_digraph_exception() -> Result<(), Error> {
-        let mut output: Vec<u8> = vec![0; 64];
         assert!(Transliterate::digraph_exception(
             &['a', 'D', 'r', 'u', 'g', 'd', 'j', 'e', 'd'],
             &['đ'],
