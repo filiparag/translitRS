@@ -77,20 +77,16 @@ impl Transliterate {
             (Charset::Latin, Charset::Cyrillic) => {
                 (charmaps::LATIN_DIRTY, charmaps::CYRILLIC_DIRTY, true)
             }
-            (Charset::LatinUnicode, Charset::Cyrillic) => (
-                charmaps::LATIN_CLEAN_UNICODE,
-                charmaps::CYRILLIC_CLEAN,
-                true,
-            ),
+            (Charset::LatinUnicode, Charset::Cyrillic) => {
+                (charmaps::LATIN_CLEAN_UNICODE, charmaps::CYRILLIC_CLEAN, true)
+            }
             //
             (Charset::Cyrillic, Charset::Latin) => {
                 (charmaps::CYRILLIC_CLEAN, charmaps::LATIN_CLEAN, false)
             }
-            (Charset::Cyrillic, Charset::LatinUnicode) => (
-                charmaps::CYRILLIC_CLEAN,
-                charmaps::LATIN_CLEAN_UNICODE,
-                false,
-            ),
+            (Charset::Cyrillic, Charset::LatinUnicode) => {
+                (charmaps::CYRILLIC_CLEAN, charmaps::LATIN_CLEAN_UNICODE, false)
+            }
         };
         assert_eq!(f.len(), i.len());
         Self {
