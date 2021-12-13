@@ -68,7 +68,7 @@ impl Transliterate {
             (Charset::Cyrillic, Charset::Cyrillic) => (charmaps::EMPTY, charmaps::EMPTY, false),
             //
             (Charset::Latin, Charset::LatinUnicode) => {
-                (charmaps::LATIN_DIRTY, charmaps::LATIN_DIRTY_UNICODE, false)
+                (charmaps::LATIN_DIRTY, charmaps::LATIN_DIRTY_UNICODE, true)
             }
             (Charset::LatinUnicode, Charset::Latin) => {
                 (charmaps::LATIN_CLEAN_UNICODE, charmaps::LATIN_CLEAN, false)
