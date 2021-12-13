@@ -1,0 +1,37 @@
+name: Code testing
+
+on:
+  push:
+    paths:
+      - ".github/workflows/rust.yml"
+      - "src/**"
+      - "*.toml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: beta
+          components: rustfmt, clippy
+          profile: minimal
+          override: true
+          default: true
+      - name: Code formatting check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --check
+      - name: Advanced code formatting check (clippy)
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-features
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --no-fail-fast --release --color always
