@@ -17,12 +17,18 @@ fn version() {
 fn help() {
     version();
     println!();
-    println!("  {} \t{}", "-v, --version", "show version and quit");
-    println!("  {} \t\t{}", "-h, --help", "show usage help and quit");
-    println!("  {} \t\t{}", "-i, --input", "read input from file");
-    println!("  {} \t\t{}", "-o, --output", "write output to file");
-    println!("  {} \t\t{}", "-f, --from", "convert from character set");
-    println!("  {} \t{}", "-t, --into", "convert to character set");
+    println!("Usage:");
+    println!("  -v, --version           show version and quit");
+    println!("  -h, --help              show usage help and quit");
+    println!("  -i, --input <path>      read input from file");
+    println!("  -o, --output <path>     write output to file");
+    println!("  -f, --from <charset>    convert from character set");
+    println!("  -t, --into <charset>    convert to character set");
+    println!();
+    println!("Character sets:");
+    println!("  latin,    lat,  l       Serbian Latin");
+    println!("  latin8,   lat8, l8      Serbian Latin (Unicode)");
+    println!("  cyrillic, cyr,  c       Serbian Cyrillic");
 }
 
 pub enum Error {
@@ -64,7 +70,6 @@ impl std::str::FromStr for transliterate::Charset {
         match s {
             "latin" | "lat" | "l" => Ok(transliterate::Charset::Latin),
             "latin8" | "lat8" | "l8" => Ok(transliterate::Charset::LatinUnicode),
-            "latin-unicode" | "lat-u" | "lu" => Ok(transliterate::Charset::LatinUnicode),
             "cyrillic" | "cyr" | "c" => Ok(transliterate::Charset::Cyrillic),
             _ => Err(Error::ArgumentInvalid),
         }
