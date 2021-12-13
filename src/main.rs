@@ -3,9 +3,10 @@ use std::fmt;
 use std::fs;
 use std::io::{self, Read, Write};
 
-mod charmaps;
-mod processor;
-use processor::{Direction, StreamProcessor};
+// mod charmaps;
+// mod processor;
+mod transliterate;
+// use processor::{Direction, StreamProcessor};
 
 #[allow(dead_code)]
 fn version() {
@@ -28,14 +29,14 @@ enum Error {
     ArgumentMissing,
     ArgumentUnknown,
     IoError(io::Error),
-    ProcessingError(processor::Error),
+    // ProcessingError(processor::Error),
 }
 
-impl From<processor::Error> for Error {
-    fn from(error: processor::Error) -> Self {
-        Self::ProcessingError(error)
-    }
-}
+// impl From<processor::Error> for Error {
+//     fn from(error: processor::Error) -> Self {
+//         Self::ProcessingError(error)
+//     }
+// }
 
 impl From<io::Error> for Error {
     fn from(error: io::Error) -> Self {
@@ -49,62 +50,62 @@ impl fmt::Debug for Error {
             Self::ArgumentMissing => writeln!(f, "Missing an argument"),
             Self::ArgumentUnknown => writeln!(f, "Uknown argument"),
             Self::IoError(e) => writeln!(f, "IO error - {}", e),
-            Self::ProcessingError(e) => writeln!(f, "Processing error - {:?}", e),
+            // Self::ProcessingError(e) => writeln!(f, "Processing error - {:?}", e),
         }
     }
 }
 
 fn main() -> Result<(), Error> {
-    let mut proc: StreamProcessor = StreamProcessor::new(Direction::LatToCyr);
+    // let mut proc: StreamProcessor = StreamProcessor::new(Direction::LatToCyr);
 
-    let mut input: Option<&mut dyn Read> = None;
-    let mut output: Option<&mut dyn Write> = None;
+    // let mut input: Option<&mut dyn Read> = None;
+    // let mut output: Option<&mut dyn Write> = None;
 
-    let mut arguments = env::args();
-    let _ = arguments.next();
+    // let mut arguments = env::args();
+    // let _ = arguments.next();
 
-    while let Some(arg) = arguments.next() {
-        match &*arg {
-            "-v" | "--version" => {
-                version();
-                return Ok(());
-            }
-            "-h" | "--help" => {
-                help();
-                return Ok(());
-            }
-            "-l" | "--latin" => proc = StreamProcessor::new(Direction::CyrToLat),
-            "-c" | "--cyrillic" => proc = StreamProcessor::new(Direction::LatToCyr),
-            "-i" | "--input" => {
-                if let Some(path) = arguments.next() {
-                    input = Some(Box::leak(Box::from(fs::File::open(path)?)));
-                } else {
-                    return Err(Error::ArgumentMissing);
-                }
-            }
-            "-o" | "--output" => {
-                if let Some(path) = arguments.next() {
-                    output = Some(Box::leak(Box::from(fs::File::create(path)?)));
-                } else {
-                    return Err(Error::ArgumentMissing);
-                }
-            }
-            _ => return Err(Error::ArgumentUnknown),
-        }
-    }
+    // while let Some(arg) = arguments.next() {
+    //     match &*arg {
+    //         "-v" | "--version" => {
+    //             version();
+    //             return Ok(());
+    //         }
+    //         "-h" | "--help" => {
+    //             help();
+    //             return Ok(());
+    //         }
+    //         "-l" | "--latin" => proc = StreamProcessor::new(Direction::CyrToLat),
+    //         "-c" | "--cyrillic" => proc = StreamProcessor::new(Direction::LatToCyr),
+    //         "-i" | "--input" => {
+    //             if let Some(path) = arguments.next() {
+    //                 input = Some(Box::leak(Box::from(fs::File::open(path)?)));
+    //             } else {
+    //                 return Err(Error::ArgumentMissing);
+    //             }
+    //         }
+    //         "-o" | "--output" => {
+    //             if let Some(path) = arguments.next() {
+    //                 output = Some(Box::leak(Box::from(fs::File::create(path)?)));
+    //             } else {
+    //                 return Err(Error::ArgumentMissing);
+    //             }
+    //         }
+    //         _ => return Err(Error::ArgumentUnknown),
+    //     }
+    // }
 
-    if let None = input {
-        input = Some(Box::leak(Box::from(io::stdin())));
-    }
+    // if let None = input {
+    //     input = Some(Box::leak(Box::from(io::stdin())));
+    // }
 
-    if let None = output {
-        output = Some(Box::leak(Box::from(io::stdout())));
-    }
+    // if let None = output {
+    //     output = Some(Box::leak(Box::from(io::stdout())));
+    // }
 
-    if let (Some(input), Some(output)) = (input, output) {
-        proc.process(input, output)?;
-    } else {
-        unreachable!()
-    }
+    // if let (Some(input), Some(output)) = (input, output) {
+    //     proc.process(input, output)?;
+    // } else {
+    //     unreachable!()
+    // }
     Ok(())
 }
