@@ -3,13 +3,17 @@ use subslice::bmh;
 
 mod charmaps;
 
-pub enum Direction {
-    LatinToCyrillic,
-    CyrillicToLatin,
+#[derive(Clone)]
+pub enum Charset {
+    Latin,
+    LatinUnicode,
+    Cyrillic,
 }
 
 pub struct Transliterate {
-    direction: Direction,
+    charset_from: &'static [&'static [char]],
+    charset_into: &'static [&'static [char]],
+    exceptions: bool,
 }
 
 pub enum Error {
@@ -47,14 +51,53 @@ impl fmt::Debug for Error {
 impl Default for Transliterate {
     fn default() -> Self {
         Self {
-            direction: Direction::LatinToCyrillic,
+            charset_from: charmaps::LATIN_DIRTY,
+            charset_into: charmaps::CYRILLIC_DIRTY,
+            exceptions: true,
         }
     }
 }
 
 impl Transliterate {
-    pub fn new(direction: Direction) -> Self {
-        Self { direction }
+    pub fn new(from: Charset, into: Charset) -> Self {
+        let (f, i, e) = match (from, into) {
+            (Charset::Latin, Charset::Latin) => (charmaps::EMPTY, charmaps::EMPTY, false),
+            (Charset::LatinUnicode, Charset::LatinUnicode) => {
+                (charmaps::EMPTY, charmaps::EMPTY, false)
+            }
+            (Charset::Cyrillic, Charset::Cyrillic) => (charmaps::EMPTY, charmaps::EMPTY, false),
+            //
+            (Charset::Latin, Charset::LatinUnicode) => {
+                (charmaps::LATIN_DIRTY, charmaps::LATIN_DIRTY_UNICODE, false)
+            }
+            (Charset::LatinUnicode, Charset::Latin) => {
+                (charmaps::LATIN_CLEAN_UNICODE, charmaps::LATIN_CLEAN, false)
+            }
+            //
+            (Charset::Latin, Charset::Cyrillic) => {
+                (charmaps::LATIN_DIRTY, charmaps::CYRILLIC_DIRTY, true)
+            }
+            (Charset::LatinUnicode, Charset::Cyrillic) => (
+                charmaps::LATIN_CLEAN_UNICODE,
+                charmaps::CYRILLIC_CLEAN,
+                true,
+            ),
+            //
+            (Charset::Cyrillic, Charset::Latin) => {
+                (charmaps::CYRILLIC_CLEAN, charmaps::LATIN_CLEAN, false)
+            }
+            (Charset::Cyrillic, Charset::LatinUnicode) => (
+                charmaps::CYRILLIC_CLEAN,
+                charmaps::LATIN_CLEAN_UNICODE,
+                false,
+            ),
+        };
+        assert_eq!(f.len(), i.len());
+        Self {
+            charset_from: f,
+            charset_into: i,
+            exceptions: e,
+        }
     }
 
     fn chars_to_utf8(input: &[char], output: &mut [u8]) -> Result<usize, Error> {
@@ -105,16 +148,9 @@ impl Transliterate {
         let mut cursor_out: usize = 0;
 
         'outer: while cursor_in < chars.len() {
-            for (i, c) in match self.direction {
-                Direction::LatinToCyrillic => charmaps::LATIN_DIRTY,
-                Direction::CyrillicToLatin => charmaps::CYRILLIC_CLEAN,
-            }
-            .iter()
-            .enumerate()
-            .rev()
-            {
+            for (i, c) in self.charset_from.iter().enumerate().rev() {
                 if chars[cursor_in..].starts_with(c) {
-                    if let Direction::LatinToCyrillic = self.direction {
+                    if self.exceptions {
                         // Start from bottom to catch digraphs first
                         if let Some(exception) = Self::digraph_exception(&chars, c)? {
                             cursor_out += Self::chars_to_utf8(exception, &mut out[cursor_out..])?;
@@ -123,13 +159,8 @@ impl Transliterate {
                         }
                     }
                     // Exception is not found, proceed to transliterate
-                    cursor_out += Self::chars_to_utf8(
-                        match self.direction {
-                            Direction::LatinToCyrillic => charmaps::CYRILLIC_DIRTY,
-                            Direction::CyrillicToLatin => charmaps::LATIN_CLEAN,
-                        }[i],
-                        &mut out[cursor_out..],
-                    )?;
+                    cursor_out +=
+                        Self::chars_to_utf8(self.charset_into[i], &mut out[cursor_out..])?;
                     cursor_in += c.len();
                     continue 'outer;
                 }
@@ -212,46 +243,44 @@ mod tests {
         ),
     ];
 
-    // #[test]
-    // fn test() -> Result<(), Error> {
-    //     let t = Transliterate::new(Direction::LatinToCyrillic);
-    //     t.process("abc\u{00A0}\u{2005}\u{2003}def\u{2008}ghi\u{3000}jkl\u{202F}\u{2006}mno")?;
-    //     Ok(())
-    // }
+    #[test]
+    fn test_charsets() -> Result<(), Error> {
+        let charsets = vec![Charset::Latin, Charset::LatinUnicode, Charset::Cyrillic];
+        for f in charsets.clone() {
+            for i in charsets.clone() {
+                let _ = Transliterate::new(f.clone(), i.clone());
+            }
+        }
+        Ok(())
+    }
 
-    // #[test]
-    // fn test_chars_to_utf8() -> Result<(), Error> {
-    //     let mut output: Vec<u8> = vec![0; 100];
-    //     let len = Transliterate::chars_to_utf8(
-    //         &['В', 'у', 'к', ' ', 'К', 'a', 'r', 'a', 'd', 'ž'],
-    //         &mut output,
-    //     )?;
-    //     eprintln!(
-    //         ">>>>> {} {} \n{:?}",
-    //         len,
-    //         String::from_utf8_lossy(&output),
-    //         &output
-    //     );
-    //     Ok(())
-    // }
+    #[test]
+    fn test_chars_to_utf8() -> Result<(), Error> {
+        let mut output: Vec<u8> = vec![0; 100];
+        let len = Transliterate::chars_to_utf8(
+            &['В', 'у', 'к', ' ', 'к', 'a', 'r', 'a', 'd', 'ž'],
+            &mut output,
+        )?;
+        assert_eq!(String::from_utf8_lossy(&output[..len]), "Вук кaradž");
+        Ok(())
+    }
 
-    // #[test]
-    // fn test_digraph_exception() -> Result<(), Error> {
-    //     let mut output: Vec<u8> = vec![0; 64];
-    //     eprintln!(
-    //         ">> {:?}",
-    //         Transliterate::digraph_exception(
-    //             &['a', 'D', 'r', 'u', 'g', 'd', 'j', 'e', 'd'],
-    //             &['đ'],
-    //         )?
-    //     );
-    //     Ok(())
-    // }
+    #[test]
+    fn test_digraph_exception() -> Result<(), Error> {
+        let mut output: Vec<u8> = vec![0; 64];
+        assert!(Transliterate::digraph_exception(
+            &['a', 'D', 'r', 'u', 'g', 'd', 'j', 'e', 'd'],
+            &['đ'],
+        )?
+        .unwrap()
+        .eq(&['д', 'ј']));
+        Ok(())
+    }
 
     #[test]
     fn test_transliterate_lat_cyr() -> Result<(), Error> {
-        for (lat, cyr, clean) in EXAMPLES {
-            let t = Transliterate::new(Direction::LatinToCyrillic);
+        for (lat, cyr, _) in EXAMPLES {
+            let t = Transliterate::new(Charset::Latin, Charset::Cyrillic);
             let res = t.process(lat)?;
             assert_eq!(&&res, cyr);
         }
@@ -264,7 +293,7 @@ mod tests {
             if !clean {
                 continue;
             }
-            let t = Transliterate::new(Direction::CyrillicToLatin);
+            let t = Transliterate::new(Charset::Cyrillic, Charset::Latin);
             let res = t.process(cyr)?;
             assert_eq!(&&res, lat);
         }
