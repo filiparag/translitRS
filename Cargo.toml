@@ -5,3 +5,4 @@ edition = "2021"
 authors = ["Filip Parag <filip@parag.rs>"]
 
 [dependencies]
+subslice = ">=0.2.3"
