@@ -148,10 +148,15 @@ impl Transliterate {
                 Regex::new(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b").unwrap();
             static ref RE_URL: Regex = Regex::new(
                 r"((http[s]?://)|(./)|(/))(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
-            )
-            .unwrap();
+            ).unwrap();
+            static ref RE_MEASUREMENT: Regex = Regex::new(
+                r"(\d+([\.,]\d)*)((K|°[FC]|[kKMGTPEY](ib|b|iB|B|Hz)|[pnμmcdhk]m[²³]?|m[²³]|[mcdkh][lg])|([zafpnμmcdhKMGTPEY]?([BVWJFSHCΩATNhlmg]|m[²³]|s[²]|cd|Pa|Wb|Hz|deg|rad)))"
+            ).unwrap();
         }
-        RE_DOMAIN.is_match(word) || RE_EMAIL.is_match(word) || RE_URL.is_match(word)
+        RE_DOMAIN.is_match(word)
+            || RE_EMAIL.is_match(word)
+            || RE_URL.is_match(word)
+            || RE_MEASUREMENT.is_match(word)
     }
 
     fn process_word(&self, word: &str) -> Result<String, Error> {
