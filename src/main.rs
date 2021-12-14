@@ -5,7 +5,7 @@ mod process;
 mod transliterate;
 
 use process::{PandocProcessor, PlaintextProcessor, Processor};
-use transliterate::Transliterator;
+use transliterate::{Charset, Transliterator};
 
 fn version() {
     println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"),);
@@ -31,6 +31,13 @@ fn help() {
     println!("  latin,    lat,  l       Serbian Latin");
     println!("  latin8,   lat8, l8      Serbian Latin (Unicode)");
     println!("  cyrillic, cyr,  c       Serbian Cyrillic");
+    println!();
+    println!("Pandoc filter environment variables:");
+    println!("  CHARS_FROM=<charset>    same as --from");
+    println!("  CHARS_INTO=<charset>    same as --into");
+    println!("  SKIP_DIGRAPH            same as --skip-digraph");
+    println!("  FORCE_FOREIGN           same as --force-foreign");
+    println!("  FORCE_LINKS             same as --force-links");
 }
 
 pub enum Error {
@@ -57,25 +64,32 @@ impl fmt::Debug for Error {
     }
 }
 
-impl std::str::FromStr for transliterate::Charset {
+impl std::str::FromStr for Charset {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "latin" | "lat" | "l" => Ok(transliterate::Charset::Latin),
-            "latin8" | "lat8" | "l8" => Ok(transliterate::Charset::LatinUnicode),
-            "cyrillic" | "cyr" | "c" => Ok(transliterate::Charset::Cyrillic),
+            "latin" | "lat" | "l" => Ok(Charset::Latin),
+            "latin8" | "lat8" | "l8" => Ok(Charset::LatinUnicode),
+            "cyrillic" | "cyr" | "c" => Ok(Charset::Cyrillic),
             _ => Err(Error::ArgumentInvalid),
         }
     }
 }
 
-fn main() -> Result<(), Error> {
+struct Arguments {
+    transliterator: Transliterator,
+    input: Option<path::PathBuf>,
+    output: Option<path::PathBuf>,
+    pandoc_mode: bool,
+}
+
+fn parse_args() -> Result<Arguments, Error> {
     let mut input: Option<path::PathBuf> = None;
     let mut output: Option<path::PathBuf> = None;
 
-    let mut charset_from = transliterate::Charset::Latin;
-    let mut charset_into = transliterate::Charset::Cyrillic;
+    let mut charset_from = Charset::Latin;
+    let mut charset_into = Charset::Cyrillic;
     let mut skip_digraph = false;
     let mut force_foreign = false;
     let mut force_links = false;
@@ -88,22 +102,22 @@ fn main() -> Result<(), Error> {
         match &*arg {
             "-v" | "--version" => {
                 version();
-                return Ok(());
+                std::process::exit(0);
             }
             "-h" | "--help" => {
                 help();
-                return Ok(());
+                std::process::exit(0);
             }
             "-t" | "--into" => {
                 if let Some(value) = arguments.next() {
-                    charset_into = transliterate::Charset::from_str(&value)?
+                    charset_into = Charset::from_str(&value)?
                 } else {
                     return Err(Error::ArgumentMissing);
                 }
             }
             "-f" | "--from" => {
                 if let Some(value) = arguments.next() {
-                    charset_from = transliterate::Charset::from_str(&value)?
+                    charset_from = Charset::from_str(&value)?
                 } else {
                     return Err(Error::ArgumentMissing);
                 }
@@ -137,14 +151,67 @@ fn main() -> Result<(), Error> {
             _ => return Err(Error::ArgumentUnknown),
         }
     }
+    Ok(Arguments {
+        transliterator: Transliterator::new(
+            charset_from,
+            charset_into,
+            skip_digraph,
+            force_foreign,
+            force_links,
+        ),
+        input,
+        output,
+        pandoc_mode,
+    })
+}
 
-    let t =
-        Transliterator::new(charset_from, charset_into, skip_digraph, force_foreign, force_links);
-    let mut p: Box<dyn Processor> = match pandoc_mode {
-        true => Box::new(PandocProcessor::new(t)),
-        false => Box::new(PlaintextProcessor::new(input, output, t)?),
-    };
-    p.run()?;
+fn regular_mode() -> Result<Box<dyn Processor>, Error> {
+    let args = parse_args()?;
+    Ok(match args.pandoc_mode {
+        true => Box::new(PandocProcessor::new(args.transliterator)),
+        false => Box::new(PlaintextProcessor::new(args.input, args.output, args.transliterator)?),
+    })
+}
 
+fn pandoc_mode() -> Result<Box<dyn Processor>, Error> {
+    fn parse_env_charset(key: &str, default: Charset) -> Result<Charset, Error> {
+        if let Ok(value) = env::var(key) {
+            if !value.is_empty() {
+                return Charset::from_str(&value);
+            }
+        }
+        Ok(default)
+    }
+    fn parse_env_bool(key: &str, default: bool) -> Result<bool, Error> {
+        if let Ok(value) = env::var(key) {
+            return Ok(match value.as_str() {
+                "0" | "false" | "no" => false,
+                _ => true,
+            });
+        }
+        Ok(default)
+    }
+    let transliterator = Transliterator::new(
+        parse_env_charset("CHARS_FROM", Charset::Latin)?,
+        parse_env_charset("CHARS_INTO", Charset::Cyrillic)?,
+        parse_env_bool("SKIP_DIGRAPH", false)?,
+        parse_env_bool("FORCE_FOREIGN", false)?,
+        parse_env_bool("FORCE_LINKS", false)?,
+    );
+    Ok(Box::new(PandocProcessor::new(transliterator)))
+}
+
+fn main() -> Result<(), Error> {
+    // Detect if called by Pandoc as a JSON filter
+    let mut proc: Box<dyn Processor> = if let Ok(value) = env::var("PANDOC_VERSION") {
+        if !value.is_empty() {
+            pandoc_mode()
+        } else {
+            regular_mode()
+        }
+    } else {
+        regular_mode()
+    }?;
+    proc.run()?;
     Ok(())
 }
