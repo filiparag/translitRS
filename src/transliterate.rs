@@ -1,3 +1,5 @@
+use lazy_static::lazy_static;
+use regex::Regex;
 use std::{cmp, fmt, io, str, string};
 use subslice::bmh;
 
@@ -137,11 +139,29 @@ impl Transliterate {
         Ok(None)
     }
 
+    fn foreign_pattern_exception(word: &str) -> bool {
+        lazy_static! {
+            static ref RE_DOMAIN: Regex = Regex::new(
+                r"[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+"
+            ).unwrap();
+            static ref RE_EMAIL: Regex =
+                Regex::new(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b").unwrap();
+            static ref RE_URL: Regex = Regex::new(
+                r"((http[s]?://)|(./)|(/))(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+            )
+            .unwrap();
+        }
+        RE_DOMAIN.is_match(word) || RE_EMAIL.is_match(word) || RE_URL.is_match(word)
+    }
+
     fn process_word(&self, word: &str) -> Result<String, Error> {
         let mut out: Vec<u8> = vec![0; word.len() * 4];
         let chars = word.chars().into_iter().collect::<Vec<char>>();
         let mut cursor_in: usize = 0;
         let mut cursor_out: usize = 0;
+        if self.skip_foreign && Self::foreign_pattern_exception(word) {
+            return Ok(word.to_string());
+        }
         let mut foreign_word: bool = false;
         'outer: while cursor_in < chars.len() {
             for (i, c) in self.charset_from.iter().enumerate().rev() {
