@@ -1,6 +1,6 @@
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::{cmp, fmt, io, str, string};
+use std::{cmp, fmt, str, string};
 use subslice::bmh;
 
 mod charmaps;
@@ -12,17 +12,16 @@ pub enum Charset {
     Cyrillic,
 }
 
-pub struct Transliterate {
+pub struct Transliterator {
     charset_from: &'static [&'static [char]],
     charset_into: &'static [&'static [char]],
     exceptions: bool,
     skip_foreign: bool,
 }
 
+#[derive(Debug)]
 pub enum Error {
-    EmptyDigest,
     BufferOverflow,
-    Io(io::Error),
     Utf8(str::Utf8Error),
     FromUtf8(string::FromUtf8Error),
 }
@@ -39,19 +38,17 @@ impl From<string::FromUtf8Error> for Error {
     }
 }
 
-impl fmt::Debug for Error {
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::EmptyDigest => writeln!(f, "Digest is empty"),
             Self::BufferOverflow => writeln!(f, "Buffer Overflow"),
-            Self::Io(e) => writeln!(f, "IO error - {}", e),
             Self::Utf8(e) => writeln!(f, "UTF-8 error - {}", e),
             Self::FromUtf8(e) => writeln!(f, "From UTF-8 error - {}", e),
         }
     }
 }
 
-impl Default for Transliterate {
+impl Default for Transliterator {
     fn default() -> Self {
         Self {
             charset_from: charmaps::LATIN_DIRTY,
@@ -62,7 +59,7 @@ impl Default for Transliterate {
     }
 }
 
-impl Transliterate {
+impl Transliterator {
     pub fn new(from: Charset, into: Charset, skip_foreign: bool) -> Self {
         let (f, i, e) = match (from, into) {
             (Charset::Latin, Charset::Latin) => (charmaps::EMPTY, charmaps::EMPTY, false),
@@ -163,7 +160,7 @@ impl Transliterate {
             || RE_MEASUREMENT.is_match(word)
     }
 
-    fn process_word(&self, word: &str) -> Result<String, Error> {
+    pub fn process_word(&self, word: &str) -> Result<String, Error> {
         let mut out: Vec<u8> = vec![0; word.len() * 4];
         let chars = word.chars().into_iter().collect::<Vec<char>>();
         let mut cursor_in: usize = 0;
@@ -299,7 +296,7 @@ mod tests {
         let charsets = vec![Charset::Latin, Charset::LatinUnicode, Charset::Cyrillic];
         for f in charsets.clone() {
             for i in charsets.clone() {
-                let _ = Transliterate::new(f.clone(), i.clone(), false);
+                let _ = Transliterator::new(f.clone(), i.clone(), false);
             }
         }
         Ok(())
@@ -308,7 +305,7 @@ mod tests {
     #[test]
     fn test_chars_to_utf8() -> Result<(), Error> {
         let mut output: Vec<u8> = vec![0; 100];
-        let len = Transliterate::chars_to_utf8(
+        let len = Transliterator::chars_to_utf8(
             &['В', 'у', 'к', ' ', 'к', 'a', 'r', 'a', 'd', 'ž'],
             &mut output,
         )?;
@@ -318,7 +315,7 @@ mod tests {
 
     #[test]
     fn test_digraph_exception() -> Result<(), Error> {
-        assert!(Transliterate::digraph_exception(
+        assert!(Transliterator::digraph_exception(
             &['a', 'D', 'r', 'u', 'g', 'd', 'j', 'e', 'd'],
             &['đ'],
         )?
@@ -330,7 +327,7 @@ mod tests {
     #[test]
     fn test_transliterate_lat_cyr() -> Result<(), Error> {
         for (lat, cyr, _) in EXAMPLES {
-            let t = Transliterate::new(Charset::Latin, Charset::Cyrillic, false);
+            let t = Transliterator::new(Charset::Latin, Charset::Cyrillic, false);
             let res = t.process(lat)?;
             assert_eq!(&&res, cyr);
         }
@@ -343,7 +340,7 @@ mod tests {
             if !clean {
                 continue;
             }
-            let t = Transliterate::new(Charset::Cyrillic, Charset::Latin, false);
+            let t = Transliterator::new(Charset::Cyrillic, Charset::Latin, false);
             let res = t.process(cyr)?;
             assert_eq!(&&res, lat);
         }
@@ -352,11 +349,11 @@ mod tests {
 
     #[test]
     fn test_skip_foreign() -> Result<(), Error> {
-        let t = Transliterate::new(Charset::Latin, Charset::Cyrillic, true);
+        let t = Transliterator::new(Charset::Latin, Charset::Cyrillic, true);
         for text in vec!["example", "例子", "مثال", "példa"] {
             assert_eq!(text, t.process_word(text)?);
         }
-        let t = Transliterate::new(Charset::Latin, Charset::Cyrillic, false);
+        let t = Transliterator::new(Charset::Latin, Charset::Cyrillic, false);
         for (text, expected) in vec![
             ("example", "еxампле"),
             ("例子", "例子"),
