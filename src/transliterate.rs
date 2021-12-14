@@ -16,7 +16,9 @@ pub struct Transliterator {
     charset_from: &'static [&'static [char]],
     charset_into: &'static [&'static [char]],
     exceptions: bool,
-    skip_foreign: bool,
+    skip_digraph: bool,
+    force_foreign: bool,
+    force_links: bool,
 }
 
 #[derive(Debug)]
@@ -54,13 +56,21 @@ impl Default for Transliterator {
             charset_from: charmaps::LATIN_DIRTY,
             charset_into: charmaps::CYRILLIC_DIRTY,
             exceptions: true,
-            skip_foreign: true,
+            skip_digraph: false,
+            force_foreign: false,
+            force_links: false,
         }
     }
 }
 
 impl Transliterator {
-    pub fn new(from: Charset, into: Charset, skip_foreign: bool) -> Self {
+    pub fn new(
+        from: Charset,
+        into: Charset,
+        skip_digraph: bool,
+        force_foreign: bool,
+        force_links: bool,
+    ) -> Self {
         let (f, i, e) = match (from, into) {
             (Charset::Latin, Charset::Latin) => (charmaps::EMPTY, charmaps::EMPTY, false),
             (Charset::LatinUnicode, Charset::LatinUnicode) => {
@@ -94,7 +104,9 @@ impl Transliterator {
             charset_from: f,
             charset_into: i,
             exceptions: e,
-            skip_foreign,
+            skip_digraph,
+            force_foreign,
+            force_links,
         }
     }
 
@@ -165,14 +177,18 @@ impl Transliterator {
         let chars = word.chars().into_iter().collect::<Vec<char>>();
         let mut cursor_in: usize = 0;
         let mut cursor_out: usize = 0;
-        if self.skip_foreign && Self::foreign_pattern_exception(word) {
-            return Ok(word.to_string());
+        let mut force_process: bool = false;
+        if Self::foreign_pattern_exception(word) {
+            if self.force_links {
+                force_process = true;
+            } else {
+                return Ok(word.to_string());
+            }
         }
-        let mut foreign_word: bool = false;
         'outer: while cursor_in < chars.len() {
             for (i, c) in self.charset_from.iter().enumerate().rev() {
                 if chars[cursor_in..].starts_with(c) {
-                    if self.exceptions {
+                    if !self.skip_digraph && self.exceptions {
                         // Start from bottom to catch digraphs first
                         if let Some(exception) = Self::digraph_exception(&chars, c)? {
                             cursor_out += Self::chars_to_utf8(exception, &mut out[cursor_out..])?;
@@ -187,21 +203,18 @@ impl Transliterator {
                     continue 'outer;
                 }
             }
-            if self.skip_foreign && chars[cursor_in].is_alphabetic() {
-                foreign_word = true;
-                break 'outer;
+            if !force_process && !self.force_foreign && chars[cursor_in].is_alphabetic() {
+                // Foreign character is found, return original
+                return Ok(word.to_string());
             } else {
+                // Add found non-alphabetic or foreign character
                 cursor_out += Self::chars_to_utf8(&[chars[cursor_in]], &mut out[cursor_out..])?;
                 cursor_in += 1;
             }
         }
         out.resize(cursor_out, 0);
         let out = String::from_utf8(out)?;
-        if !foreign_word {
-            Ok(out)
-        } else {
-            Ok(word.to_string())
-        }
+        Ok(out)
     }
 
     pub fn process<S: AsRef<str>>(&self, input: S) -> Result<String, Error> {

@@ -13,6 +13,7 @@ fn version() {
 
 fn help() {
     version();
+    println!("{}", env!("CARGO_PKG_AUTHORS"));
     println!();
     println!("Usage:");
     println!("  -v, --version           show version and quit");
@@ -21,7 +22,9 @@ fn help() {
     println!("  -o, --output <path>     write output to file");
     println!("  -f, --from <charset>    convert from character set");
     println!("  -t, --into <charset>    convert to character set");
-    println!("  -s, --skip-foreign      skip words with foreign characters");
+    println!("  -d, --skip-digraph      do not check for digraph exceptions");
+    println!("  -u, --force-foreign     process words with foreign and mixed characters");
+    println!("  -l, --force-links       process hyperlinks and email addresses");
     println!("  -p, --pandoc-filter     run in Pandoc JSON filter mode");
     println!();
     println!("Character sets:");
@@ -73,7 +76,9 @@ fn main() -> Result<(), Error> {
 
     let mut charset_from = transliterate::Charset::Latin;
     let mut charset_into = transliterate::Charset::Cyrillic;
-    let mut skip_foreing = false;
+    let mut skip_digraph = false;
+    let mut force_foreign = false;
+    let mut force_links = false;
     let mut pandoc_mode = false;
 
     let mut arguments = env::args();
@@ -110,8 +115,14 @@ fn main() -> Result<(), Error> {
                     return Err(Error::ArgumentMissing);
                 }
             }
-            "-s" | "--skip-foreign" => {
-                skip_foreing = true;
+            "-d" | "--skip-digraph" => {
+                skip_digraph = true;
+            }
+            "-u" | "--force-foreign" => {
+                force_foreign = true;
+            }
+            "-l" | "--force-links" => {
+                force_links = true;
             }
             "-p" | "--pandoc-filter" => {
                 pandoc_mode = true;
@@ -127,7 +138,8 @@ fn main() -> Result<(), Error> {
         }
     }
 
-    let t = Transliterator::new(charset_from, charset_into, skip_foreing);
+    let t =
+        Transliterator::new(charset_from, charset_into, skip_digraph, force_foreign, force_links);
     let mut p: Box<dyn Processor> = match pandoc_mode {
         true => Box::new(PandocProcessor::new(t)),
         false => Box::new(PlaintextProcessor::new(input, output, t)?),
