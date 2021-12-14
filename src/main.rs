@@ -1,12 +1,11 @@
-use std::env;
-use std::fmt;
-use std::fs;
-use std::io::{self, Read, Write};
 use std::str::FromStr;
+use std::{env, fmt, path};
 
-use transliterate::Transliterate;
-
+mod process;
 mod transliterate;
+
+use process::{PandocProcessor, PlaintextProcessor, Processor};
+use transliterate::Transliterator;
 
 fn version() {
     println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"),);
@@ -23,6 +22,7 @@ fn help() {
     println!("  -f, --from <charset>    convert from character set");
     println!("  -t, --into <charset>    convert to character set");
     println!("  -s, --skip-foreign      skip words with foreign characters");
+    println!("  -p, --pandoc-filter     run in Pandoc JSON filter mode");
     println!();
     println!("Character sets:");
     println!("  latin,    lat,  l       Serbian Latin");
@@ -34,19 +34,12 @@ pub enum Error {
     ArgumentMissing,
     ArgumentUnknown,
     ArgumentInvalid,
-    IoError(io::Error),
-    ProcessingError(transliterate::Error),
+    Runtime(process::Error),
 }
 
-impl From<transliterate::Error> for Error {
-    fn from(error: transliterate::Error) -> Self {
-        Self::ProcessingError(error)
-    }
-}
-
-impl From<io::Error> for Error {
-    fn from(error: io::Error) -> Self {
-        Self::IoError(error)
+impl From<process::Error> for Error {
+    fn from(error: process::Error) -> Self {
+        Self::Runtime(error)
     }
 }
 
@@ -56,8 +49,7 @@ impl fmt::Debug for Error {
             Self::ArgumentMissing => writeln!(f, "Missing an argument"),
             Self::ArgumentUnknown => writeln!(f, "Uknown argument"),
             Self::ArgumentInvalid => writeln!(f, "Invalid argument"),
-            Self::IoError(e) => writeln!(f, "IO error - {}", e),
-            Self::ProcessingError(e) => writeln!(f, "Processing error - {:?}", e),
+            Self::Runtime(e) => writeln!(f, "Runtime error - {}", e),
         }
     }
 }
@@ -76,12 +68,13 @@ impl std::str::FromStr for transliterate::Charset {
 }
 
 fn main() -> Result<(), Error> {
-    let mut input: Option<&mut dyn Read> = None;
-    let mut output: Option<&mut dyn Write> = None;
+    let mut input: Option<path::PathBuf> = None;
+    let mut output: Option<path::PathBuf> = None;
 
     let mut charset_from = transliterate::Charset::Latin;
     let mut charset_into = transliterate::Charset::Cyrillic;
     let mut skip_foreing = false;
+    let mut pandoc_mode = false;
 
     let mut arguments = env::args();
     let _ = arguments.next();
@@ -112,7 +105,7 @@ fn main() -> Result<(), Error> {
             }
             "-i" | "--input" => {
                 if let Some(path) = arguments.next() {
-                    input = Some(Box::leak(Box::from(fs::File::open(path)?)));
+                    input = Some(path::PathBuf::from(path));
                 } else {
                     return Err(Error::ArgumentMissing);
                 }
@@ -120,9 +113,12 @@ fn main() -> Result<(), Error> {
             "-s" | "--skip-foreign" => {
                 skip_foreing = true;
             }
+            "-p" | "--pandoc-filter" => {
+                pandoc_mode = true;
+            }
             "-o" | "--output" => {
                 if let Some(path) = arguments.next() {
-                    output = Some(Box::leak(Box::from(fs::File::create(path)?)));
+                    output = Some(path::PathBuf::from(path));
                 } else {
                     return Err(Error::ArgumentMissing);
                 }
@@ -131,23 +127,12 @@ fn main() -> Result<(), Error> {
         }
     }
 
-    if input.is_none() {
-        input = Some(Box::leak(Box::from(io::stdin())));
-    }
+    let t = Transliterator::new(charset_from, charset_into, skip_foreing);
+    let mut p: Box<dyn Processor> = match pandoc_mode {
+        true => Box::new(PandocProcessor::new(t)),
+        false => Box::new(PlaintextProcessor::new(input, output, t)?),
+    };
+    p.run()?;
 
-    if output.is_none() {
-        output = Some(Box::leak(Box::from(io::stdout())));
-    }
-
-    let proc = Transliterate::new(charset_from, charset_into, skip_foreing);
-
-    if let (Some(input), Some(output)) = (input, output) {
-        let mut input_string = String::new();
-        input.read_to_string(&mut input_string)?;
-        let output_string = proc.process(input_string)?;
-        output.write_all(output_string.as_bytes())?;
-    } else {
-        unreachable!()
-    }
     Ok(())
 }
