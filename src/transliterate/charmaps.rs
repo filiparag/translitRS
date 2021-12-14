@@ -5,13 +5,11 @@ pub const SEPARATORS: &[char] = &[
     '\u{202F}', '\u{205F}', '\u{3000}', '\u{FEFF}',
 ];
 
-#[allow(dead_code)]
 pub const EMPTY: &[&[char]] = &[];
 
 // Borrowed from Jovan Turanjanin's Ćirilizator
 // https://github.com/turanjanin/cirilizator
 
-#[allow(dead_code)]
 pub const LATIN_CLEAN: &[&[char]] = &[
     &['A'],
     &['B'],
@@ -78,7 +76,6 @@ pub const LATIN_CLEAN: &[&[char]] = &[
     &['š'],
 ];
 
-#[allow(dead_code)]
 pub const LATIN_CLEAN_UNICODE: &[&[char]] = &[
     &['A'],
     &['B'],
@@ -145,7 +142,6 @@ pub const LATIN_CLEAN_UNICODE: &[&[char]] = &[
     &['š'],
 ];
 
-#[allow(dead_code)]
 pub const CYRILLIC_CLEAN: &[&[char]] = &[
     &['А'],
     &['Б'],
@@ -212,7 +208,6 @@ pub const CYRILLIC_CLEAN: &[&[char]] = &[
     &['ш'],
 ];
 
-#[allow(dead_code)]
 pub const LATIN_DIRTY: &[&[char]] = &[
     &['A'],
     &['B'],
@@ -309,7 +304,6 @@ pub const LATIN_DIRTY: &[&[char]] = &[
     &['\u{161}'],
 ];
 
-#[allow(dead_code)]
 pub const LATIN_DIRTY_UNICODE: &[&[char]] = &[
     &['A'],
     &['B'],
@@ -406,7 +400,6 @@ pub const LATIN_DIRTY_UNICODE: &[&[char]] = &[
     &['š'],
 ];
 
-#[allow(dead_code)]
 pub const CYRILLIC_DIRTY: &[&[char]] = &[
     &['А'],
     &['Б'],
@@ -503,14 +496,12 @@ pub const CYRILLIC_DIRTY: &[&[char]] = &[
     &['ш'],
 ];
 
-#[allow(dead_code)]
 pub struct DigraphException<'a> {
     pub latin: &'a [&'a [char]],
     pub cyrillic: &'a [&'a [char]],
     pub exceptions: &'a [&'a str],
 }
 
-#[allow(dead_code)]
 pub const DIGRAPH_EXCEPTIONS: &[DigraphException<'static>] = &[
     DigraphException {
         latin: &[
@@ -575,7 +566,6 @@ pub const DIGRAPH_EXCEPTIONS: &[DigraphException<'static>] = &[
     },
 ];
 
-#[allow(dead_code)]
 pub const DIGRAPH_EXCEPTIONS_DJ: &[&str] = &[
     "adjektiv",
     "adjunkt",
@@ -796,7 +786,6 @@ pub const DIGRAPH_EXCEPTIONS_DJ: &[&str] = &[
     "šukundjed",
 ];
 
-#[allow(dead_code)]
 pub const DIGRAPH_EXCEPTIONS_DZ: &[&str] = &[
     "feldžandarm",
     "nadžanj",
@@ -830,7 +819,6 @@ pub const DIGRAPH_EXCEPTIONS_DZ: &[&str] = &[
     "predživot",
 ];
 
-#[allow(dead_code)]
 pub const DIGRAPH_EXCEPTIONS_NJ: &[&str] = &[
     "anjon",
     "injaric",

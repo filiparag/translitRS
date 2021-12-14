@@ -8,12 +8,10 @@ use transliterate::Transliterate;
 
 mod transliterate;
 
-#[allow(dead_code)]
 fn version() {
     println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"),);
 }
 
-#[allow(dead_code)]
 fn help() {
     version();
     println!();

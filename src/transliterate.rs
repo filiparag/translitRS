@@ -141,14 +141,18 @@ impl Transliterate {
 
     fn foreign_pattern_exception(word: &str) -> bool {
         lazy_static! {
+            // Borrowed from https://stackoverflow.com/a/26093611
             static ref RE_DOMAIN: Regex = Regex::new(
                 r"[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+"
             ).unwrap();
+            // Borrowed from https://www.emailregex.com/
             static ref RE_EMAIL: Regex =
                 Regex::new(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b").unwrap();
+            // Borrowed from http://urlregex.com/
             static ref RE_URL: Regex = Regex::new(
                 r"((http[s]?://)|(./)|(/))(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
             ).unwrap();
+            // Borrowed from https://github.com/turanjanin/cirilizator
             static ref RE_MEASUREMENT: Regex = Regex::new(
                 r"(\d+([\.,]\d)*)((K|°[FC]|[kKMGTPEY](ib|b|iB|B|Hz)|[pnμmcdhk]m[²³]?|m[²³]|[mcdkh][lg])|([zafpnμmcdhKMGTPEY]?([BVWJFSHCΩATNhlmg]|m[²³]|s[²]|cd|Pa|Wb|Hz|deg|rad)))"
             ).unwrap();
@@ -240,7 +244,6 @@ impl Transliterate {
 mod tests {
     use super::*;
 
-    #[allow(dead_code)]
     const EXAMPLES: &'static [(&str, &str, bool)] = &[
         ("", "", true),
         ("1234567890", "1234567890", true),
