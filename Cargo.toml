@@ -8,3 +8,4 @@ authors = ["Filip Parag <filip@parag.rs>"]
 subslice = ">=0.2.3"
 regex = ">=1.5.4"
 lazy_static = ">=1.4.0"
+pandoc_ast = ">=0.8.0"
