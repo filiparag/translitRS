@@ -24,6 +24,7 @@ fn help() {
     println!("  -o, --output <path>     write output to file");
     println!("  -f, --from <charset>    convert from character set");
     println!("  -t, --into <charset>    convert to character set");
+    println!("  -s, --skip-foreign      skip words with foreign characters");
     println!();
     println!("Character sets:");
     println!("  latin,    lat,  l       Serbian Latin");
@@ -82,6 +83,7 @@ fn main() -> Result<(), Error> {
 
     let mut charset_from = transliterate::Charset::Latin;
     let mut charset_into = transliterate::Charset::Cyrillic;
+    let mut skip_foreing = false;
 
     let mut arguments = env::args();
     let _ = arguments.next();
@@ -117,6 +119,9 @@ fn main() -> Result<(), Error> {
                     return Err(Error::ArgumentMissing);
                 }
             }
+            "-s" | "--skip-foreign" => {
+                skip_foreing = true;
+            }
             "-o" | "--output" => {
                 if let Some(path) = arguments.next() {
                     output = Some(Box::leak(Box::from(fs::File::create(path)?)));
@@ -136,7 +141,7 @@ fn main() -> Result<(), Error> {
         output = Some(Box::leak(Box::from(io::stdout())));
     }
 
-    let proc = Transliterate::new(charset_from, charset_into);
+    let proc = Transliterate::new(charset_from, charset_into, skip_foreing);
 
     if let (Some(input), Some(output)) = (input, output) {
         let mut input_string = String::new();
