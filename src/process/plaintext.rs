@@ -24,7 +24,7 @@ impl PlaintextProcessor {
                 Box::from(io::stdin())
             },
             output: if let Some(p) = output {
-                Box::from(File::open(p)?)
+                Box::from(File::create(p)?)
             } else {
                 Box::from(io::stdout())
             },
