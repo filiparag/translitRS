@@ -184,10 +184,7 @@ fn pandoc_mode() -> Result<Box<dyn Processor>, Error> {
     }
     fn parse_env_bool(key: &str, default: bool) -> Result<bool, Error> {
         if let Ok(value) = env::var(key) {
-            return Ok(match value.as_str() {
-                "0" | "false" | "no" => false,
-                _ => true,
-            });
+            return Ok(!matches!(value.as_str(), "0" | "false" | "no"));
         }
         Ok(default)
     }

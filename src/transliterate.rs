@@ -126,6 +126,7 @@ impl Transliterator {
     fn digraph_exception<'a>(
         word: &[char],
         character: &'a [char],
+        latinize: bool,
     ) -> Result<Option<&'a [char]>, Error> {
         for exception in charmaps::DIGRAPH_EXCEPTIONS {
             for i in 0..exception.latin.len() {
@@ -139,7 +140,11 @@ impl Transliterator {
                     }
                     for e in exception.exceptions {
                         if bmh::find(&lowercase, e.as_bytes()).is_some() {
-                            return Ok(Some(exception.cyrillic[i]));
+                            if latinize {
+                                return Ok(Some(exception.latinized[i]));
+                            } else {
+                                return Ok(Some(exception.cyrillic[i]));
+                            }
                         }
                     }
                 }
@@ -189,8 +194,11 @@ impl Transliterator {
             for (i, c) in self.charset_from.iter().enumerate().rev() {
                 if chars[cursor_in..].starts_with(c) {
                     if !self.skip_digraph && self.exceptions {
+                        // If transliterating to latin8, transliterate exception too
+                        let latinize = self.charset_into == charmaps::LATIN_CLEAN_UNICODE
+                            || self.charset_into == charmaps::LATIN_DIRTY_UNICODE;
                         // Start from bottom to catch digraphs first
-                        if let Some(exception) = Self::digraph_exception(&chars, c)? {
+                        if let Some(exception) = Self::digraph_exception(&chars, c, latinize)? {
                             cursor_out += Self::chars_to_utf8(exception, &mut out[cursor_out..])?;
                             cursor_in += exception.len();
                             continue 'outer;
@@ -309,7 +317,7 @@ mod tests {
         let charsets = vec![Charset::Latin, Charset::LatinUnicode, Charset::Cyrillic];
         for f in charsets.clone() {
             for i in charsets.clone() {
-                let _ = Transliterator::new(f.clone(), i.clone(), false);
+                let _ = Transliterator::new(f.clone(), i.clone(), false, false, false);
             }
         }
         Ok(())
@@ -328,19 +336,67 @@ mod tests {
 
     #[test]
     fn test_digraph_exception() -> Result<(), Error> {
-        assert!(Transliterator::digraph_exception(
-            &['a', 'D', 'r', 'u', 'g', 'd', 'j', 'e', 'd'],
-            &['đ'],
-        )?
-        .unwrap()
-        .eq(&['д', 'ј']));
+        assert_eq!(
+            Transliterator::digraph_exception(
+                &['a', 'D', 'r', 'u', 'g', 'd', 'j', 'e', 'd'],
+                &['đ'],
+                false
+            )?
+            .unwrap(),
+            &['д', 'ј']
+        );
+        assert_eq!(
+            Transliterator::digraph_exception(
+                &['a', 'D', 'r', 'u', 'g', 'd', 'j', 'e', 'd'],
+                &['đ'],
+                true
+            )?
+            .unwrap(),
+            &['d', 'j']
+        );
+        assert_eq!(
+            Transliterator::digraph_exception(
+                &['n', 'a', 'D', 'ž', 'i', 'v', 'e', 't', 'i'],
+                &['D', 'ž'],
+                false
+            )?
+            .unwrap(),
+            &['Д', 'ж']
+        );
+        assert_eq!(
+            Transliterator::digraph_exception(
+                &['n', 'a', 'D', 'ž', 'i', 'v', 'e', 't', 'i'],
+                &['D', 'ž'],
+                true
+            )?
+            .unwrap(),
+            &['D', 'ž']
+        );
+        assert_eq!(
+            Transliterator::digraph_exception(
+                &['d', 'a', 'N', 'J', 'o', 'n', 'i'],
+                &['N', 'J'],
+                false
+            )?
+            .unwrap(),
+            &['Н', 'Ј']
+        );
+        assert_eq!(
+            Transliterator::digraph_exception(
+                &['d', 'a', 'N', 'J', 'o', 'n', 'i'],
+                &['N', 'J'],
+                true
+            )?
+            .unwrap(),
+            &['N', 'J']
+        );
         Ok(())
     }
 
     #[test]
     fn test_transliterate_lat_cyr() -> Result<(), Error> {
         for (lat, cyr, _) in EXAMPLES {
-            let t = Transliterator::new(Charset::Latin, Charset::Cyrillic, false);
+            let t = Transliterator::new(Charset::Latin, Charset::Cyrillic, false, false, false);
             let res = t.process(lat)?;
             assert_eq!(&&res, cyr);
         }
@@ -353,7 +409,7 @@ mod tests {
             if !clean {
                 continue;
             }
-            let t = Transliterator::new(Charset::Cyrillic, Charset::Latin, false);
+            let t = Transliterator::new(Charset::Cyrillic, Charset::Latin, false, false, false);
             let res = t.process(cyr)?;
             assert_eq!(&&res, lat);
         }
@@ -362,11 +418,11 @@ mod tests {
 
     #[test]
     fn test_skip_foreign() -> Result<(), Error> {
-        let t = Transliterator::new(Charset::Latin, Charset::Cyrillic, true);
+        let t = Transliterator::new(Charset::Latin, Charset::Cyrillic, false, false, false);
         for text in vec!["example", "例子", "مثال", "példa"] {
             assert_eq!(text, t.process_word(text)?);
         }
-        let t = Transliterator::new(Charset::Latin, Charset::Cyrillic, false);
+        let t = Transliterator::new(Charset::Latin, Charset::Cyrillic, false, true, false);
         for (text, expected) in vec![
             ("example", "еxампле"),
             ("例子", "例子"),

@@ -498,6 +498,7 @@ pub const CYRILLIC_DIRTY: &[&[char]] = &[
 
 pub struct DigraphException<'a> {
     pub latin: &'a [&'a [char]],
+    pub latinized: &'a [&'a [char]],
     pub cyrillic: &'a [&'a [char]],
     pub exceptions: &'a [&'a str],
 }
@@ -510,6 +511,14 @@ pub const DIGRAPH_EXCEPTIONS: &[DigraphException<'static>] = &[
             &['D', 'J'],
             &['D', 'j'],
             &['đ'],
+            &['d', 'j'],
+        ],
+        latinized: &[
+            &['D', 'j'],
+            &['D', 'j'],
+            &['D', 'J'],
+            &['D', 'j'],
+            &['d', 'j'],
             &['d', 'j'],
         ],
         cyrillic: &[
@@ -533,6 +542,16 @@ pub const DIGRAPH_EXCEPTIONS: &[DigraphException<'static>] = &[
             &['d', 'ž'],
             &['ǆ'],
         ],
+        latinized: &[
+            &['D', 'Ž'],
+            &['D', 'Ž'],
+            &['D', 'Ž'],
+            &['D', 'ž'],
+            &['D', 'ž'],
+            &['D', 'ž'],
+            &['d', 'ž'],
+            &['d', 'ž'],
+        ],
         cyrillic: &[
             &['Д', 'Ж'],
             &['Д', 'Ж'],
@@ -553,6 +572,14 @@ pub const DIGRAPH_EXCEPTIONS: &[DigraphException<'static>] = &[
             &['ǋ'],
             &['n', 'j'],
             &['ǌ'],
+        ],
+        latinized: &[
+            &['N', 'J'],
+            &['N', 'J'],
+            &['N', 'j'],
+            &['N', 'j'],
+            &['n', 'j'],
+            &['n', 'j'],
         ],
         cyrillic: &[
             &['Н', 'Ј'],
