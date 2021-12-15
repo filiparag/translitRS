@@ -5,6 +5,13 @@ edition = "2021"
 authors = ["Filip Parag <filip@parag.rs>"]
 license = "MIT"
 description = "Transliteration utility for Serbian language"
+readme = "README.md"
+homepage = "https://github.com/filiparag/translitRS"
+keywords = ["transliteration", "filter", "text", "pandoc"]
+categories = ["command-line-utilities", "text-processing"]
+include = ["/src"]
+maintenance = { status = "passively-maintained" }
+rust-version = "1.57"
 
 [dependencies]
 subslice = ">=0.2.3"

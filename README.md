@@ -1,3 +1,7 @@
+[![Crates.io](https://img.shields.io/crates/v/translitRS)](https://crates.io/crates/translitRS)
+[![Build status](https://img.shields.io/github/workflow/status/filiparag/translitRS/Code%20testing)](https://github.com/filiparag/translitRS/actions/workflows/rust.yml)
+[![License](https://img.shields.io/crates/l/translitRS)](https://github.com/filiparag/translitRS/blob/master/LICENSE)
+
 ## translitRS — Transliterator for Serbian Language
 
 TranslitRS is a command-line utility for transliteration between Cyrillic and Latin scripts of the Serbian language. It can work on plain text files directly, or as a filter for [Pandoc](https://pandoc.org/) document processor (*Markdown*, *HTML*, *LaTeX*, *Microsoft Word*...).
