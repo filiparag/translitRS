@@ -5,589 +5,2186 @@ pub const SEPARATORS: &[char] = &[
     '\u{202F}', '\u{205F}', '\u{3000}', '\u{FEFF}',
 ];
 
-pub const EMPTY: &[&[char]] = &[];
+#[derive(PartialEq)]
+pub enum Case {
+    Upper,
+    Mixed,
+    Lower,
+}
+
+#[derive(PartialEq)]
+pub struct Character<'a> {
+    pub value: &'a [char],
+    pub case: Case,
+}
+
+pub const EMPTY: &[Character] = &[];
 
 // Borrowed from Jovan Turanjanin's Ćirilizator
 // https://github.com/turanjanin/cirilizator
 
-pub const LATIN_CLEAN: &[&[char]] = &[
-    &['A'],
-    &['B'],
-    &['V'],
-    &['G'],
-    &['D'],
-    &['Đ'],
-    &['E'],
-    &['Ž'],
-    &['Z'],
-    &['I'],
-    &['J'],
-    &['K'],
-    &['L'],
-    &['L', 'J'], //
-    &['L', 'j'], //
-    &['M'],
-    &['N'],
-    &['N', 'N'], //
-    &['N', 'j'], //
-    &['O'],
-    &['P'],
-    &['R'],
-    &['S'],
-    &['T'],
-    &['Ć'],
-    &['U'],
-    &['F'],
-    &['H'],
-    &['C'],
-    &['Č'],
-    &['D', 'Ž'], //
-    &['D', 'ž'], //
-    &['Š'],
-    &['a'],
-    &['b'],
-    &['v'],
-    &['g'],
-    &['d'],
-    &['đ'],
-    &['e'],
-    &['ž'],
-    &['z'],
-    &['i'],
-    &['j'],
-    &['k'],
-    &['l'],
-    &['l', 'j'],
-    &['m'],
-    &['n'],
-    &['n', 'j'],
-    &['o'],
-    &['p'],
-    &['r'],
-    &['s'],
-    &['t'],
-    &['ć'],
-    &['u'],
-    &['f'],
-    &['h'],
-    &['c'],
-    &['č'],
-    &['d', 'ž'],
-    &['š'],
+pub const LATIN_CLEAN: &[Character] = &[
+    Character {
+        value: &['A'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['B'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['V'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['G'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['D'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Đ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['E'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ž'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Z'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['I'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['J'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['K'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['L'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['L', 'J'],
+        case: Case::Upper,
+    }, //
+    Character {
+        value: &['L', 'j'],
+        case: Case::Mixed,
+    }, //
+    Character {
+        value: &['M'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['N'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['N', 'J'],
+        case: Case::Upper,
+    }, //
+    Character {
+        value: &['N', 'j'],
+        case: Case::Mixed,
+    }, //
+    Character {
+        value: &['O'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['P'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['R'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['S'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['T'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ć'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['U'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['F'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['H'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['C'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Č'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['D', 'Ž'],
+        case: Case::Upper,
+    }, //
+    Character {
+        value: &['D', 'ž'],
+        case: Case::Mixed,
+    }, //
+    Character {
+        value: &['Š'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['a'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['b'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['v'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['g'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['d'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['đ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['e'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ž'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['z'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['i'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['j'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['k'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['l'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['l', 'j'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['m'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['n'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['n', 'j'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['o'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['p'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['r'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['s'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['t'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ć'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['u'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['f'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['h'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['c'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['č'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['d', 'ž'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['š'],
+        case: Case::Lower,
+    },
 ];
 
-pub const LATIN_CLEAN_UNICODE: &[&[char]] = &[
-    &['A'],
-    &['B'],
-    &['V'],
-    &['G'],
-    &['D'],
-    &['Đ'],
-    &['E'],
-    &['Ž'],
-    &['Z'],
-    &['I'],
-    &['J'],
-    &['K'],
-    &['L'],
-    &['Ǉ'], //
-    &['ǈ'], //
-    &['M'],
-    &['N'],
-    &['Ǌ'], //
-    &['ǋ'], //
-    &['O'],
-    &['P'],
-    &['R'],
-    &['S'],
-    &['T'],
-    &['Ć'],
-    &['U'],
-    &['F'],
-    &['H'],
-    &['C'],
-    &['Č'],
-    &['Ǆ'], //
-    &['ǅ'], //
-    &['Š'],
-    &['a'],
-    &['b'],
-    &['v'],
-    &['g'],
-    &['d'],
-    &['đ'],
-    &['e'],
-    &['ž'],
-    &['z'],
-    &['i'],
-    &['j'],
-    &['k'],
-    &['l'],
-    &['ǉ'],
-    &['m'],
-    &['n'],
-    &['ǌ'],
-    &['o'],
-    &['p'],
-    &['r'],
-    &['s'],
-    &['t'],
-    &['ć'],
-    &['u'],
-    &['f'],
-    &['h'],
-    &['c'],
-    &['č'],
-    &['ǆ'],
-    &['š'],
+pub const LATIN_CLEAN_UNICODE: &[Character] = &[
+    Character {
+        value: &['A'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['B'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['V'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['G'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['D'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Đ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['E'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ž'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Z'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['I'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['J'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['K'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['L'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ǉ'],
+        case: Case::Upper,
+    }, //
+    Character {
+        value: &['ǈ'],
+        case: Case::Mixed,
+    }, //
+    Character {
+        value: &['M'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['N'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ǌ'],
+        case: Case::Upper,
+    }, //
+    Character {
+        value: &['ǋ'],
+        case: Case::Mixed,
+    }, //
+    Character {
+        value: &['O'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['P'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['R'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['S'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['T'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ć'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['U'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['F'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['H'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['C'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Č'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ǆ'],
+        case: Case::Upper,
+    }, //
+    Character {
+        value: &['ǅ'],
+        case: Case::Mixed,
+    }, //
+    Character {
+        value: &['Š'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['a'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['b'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['v'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['g'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['d'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['đ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['e'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ž'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['z'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['i'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['j'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['k'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['l'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ǉ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['m'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['n'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ǌ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['o'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['p'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['r'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['s'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['t'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ć'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['u'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['f'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['h'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['c'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['č'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ǆ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['š'],
+        case: Case::Lower,
+    },
 ];
 
-pub const CYRILLIC_CLEAN: &[&[char]] = &[
-    &['А'],
-    &['Б'],
-    &['В'],
-    &['Г'],
-    &['Д'],
-    &['Ђ'],
-    &['Е'],
-    &['Ж'],
-    &['З'],
-    &['И'],
-    &['Ј'],
-    &['К'],
-    &['Л'],
-    &['Љ'], //
-    &['Љ'], //
-    &['М'],
-    &['Н'],
-    &['Њ'], //
-    &['Њ'], //
-    &['О'],
-    &['П'],
-    &['Р'],
-    &['С'],
-    &['Т'],
-    &['Ћ'],
-    &['У'],
-    &['Ф'],
-    &['Х'],
-    &['Ц'],
-    &['Ч'],
-    &['Џ'], //
-    &['Џ'], //
-    &['Ш'],
-    &['а'],
-    &['б'],
-    &['в'],
-    &['г'],
-    &['д'],
-    &['ђ'],
-    &['е'],
-    &['ж'],
-    &['з'],
-    &['и'],
-    &['ј'],
-    &['к'],
-    &['л'],
-    &['љ'],
-    &['м'],
-    &['н'],
-    &['њ'],
-    &['о'],
-    &['п'],
-    &['р'],
-    &['с'],
-    &['т'],
-    &['ћ'],
-    &['у'],
-    &['ф'],
-    &['х'],
-    &['ц'],
-    &['ч'],
-    &['џ'],
-    &['ш'],
+pub const CYRILLIC_CLEAN: &[Character] = &[
+    Character {
+        value: &['А'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Б'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['В'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Г'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Д'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ђ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Е'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ж'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['З'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['И'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ј'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['К'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Л'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Љ'],
+        case: Case::Upper,
+    }, //
+    Character {
+        value: &['Љ'],
+        case: Case::Mixed,
+    }, //
+    Character {
+        value: &['М'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Н'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Њ'],
+        case: Case::Upper,
+    }, //
+    Character {
+        value: &['Њ'],
+        case: Case::Mixed,
+    }, //
+    Character {
+        value: &['О'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['П'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Р'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['С'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Т'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ћ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['У'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ф'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Х'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ц'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ч'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Џ'],
+        case: Case::Upper,
+    }, //
+    Character {
+        value: &['Џ'],
+        case: Case::Mixed,
+    }, //
+    Character {
+        value: &['Ш'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['а'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['б'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['в'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['г'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['д'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ђ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['е'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ж'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['з'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['и'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ј'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['к'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['л'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['љ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['м'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['н'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['њ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['о'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['п'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['р'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['с'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['т'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ћ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['у'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ф'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['х'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ц'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ч'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['џ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ш'],
+        case: Case::Lower,
+    },
 ];
 
-pub const LATIN_DIRTY: &[&[char]] = &[
-    &['A'],
-    &['B'],
-    &['V'],
-    &['G'],
-    &['D'],
-    &['Đ'],
-    &['Ð'],
-    &['D', 'J'],
-    &['D', 'j'],
-    &['E'],
-    &['Z'],
-    &['Ž'],
-    &['\u{17d}'],
-    &['I'],
-    &['J'],
-    &['K'],
-    &['L'],
-    &['L', 'J'],
-    &['Ǉ'],
-    &['L', 'j'],
-    &['ǈ'],
-    &['M'],
-    &['N'],
-    &['N', 'J'],
-    &['Ǌ'],
-    &['N', 'j'],
-    &['ǋ'],
-    &['O'],
-    &['P'],
-    &['R'],
-    &['S'],
-    &['T'],
-    &['Ć'],
-    &['\u{106}'],
-    &['U'],
-    &['F'],
-    &['H'],
-    &['C'],
-    &['Č'],
-    &['\u{10c}'],
-    &['D', 'Ž'],
-    &['Ǆ'],
-    &['D', '\u{17d}'],
-    &['D', 'ž'],
-    &['ǅ'],
-    &['D', '\u{17e}'],
-    &['Š'],
-    &['\u{160}'],
-    &['a'],
-    &['æ'],
-    &['b'],
-    &['v'],
-    &['g'],
-    &['d'],
-    &['đ'],
-    &['d', 'j'],
-    &['e'],
-    &['z'],
-    &['ž'],
-    &['\u{17e}'],
-    &['i'],
-    &['ĳ'],
-    &['j'],
-    &['k'],
-    &['l'],
-    &['l', 'j'],
-    &['ǉ'],
-    &['m'],
-    &['n'],
-    &['n', 'j'],
-    &['ǌ'],
-    &['o'],
-    &['œ'],
-    &['p'],
-    &['r'],
-    &['s'],
-    &['ﬆ'],
-    &['t'],
-    &['ć'],
-    &['\u{107}'],
-    &['u'],
-    &['f'],
-    &['ﬁ'],
-    &['ﬂ'],
-    &['h'],
-    &['c'],
-    &['č'],
-    &['\u{10d}'],
-    &['d', 'ž'],
-    &['ǆ'],
-    &['d', '\u{17e}'],
-    &['š'],
-    &['\u{161}'],
+pub const LATIN_DIRTY: &[Character] = &[
+    Character {
+        value: &['A'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['B'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['V'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['G'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['D'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Đ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ð'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['D', 'J'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['D', 'j'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['E'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Z'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ž'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['\u{17d}'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['I'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['J'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['K'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['L'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['L', 'J'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ǉ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['L', 'j'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['ǈ'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['M'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['N'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['N', 'J'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ǌ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['N', 'j'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['ǋ'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['O'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['P'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['R'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['S'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['T'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ć'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['\u{106}'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['U'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['F'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['H'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['C'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Č'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['\u{10c}'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['D', 'Ž'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ǆ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['D', '\u{17d}'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['D', 'ž'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['ǅ'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['D', '\u{17e}'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['Š'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['\u{160}'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['a'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['æ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['b'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['v'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['g'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['d'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['đ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['d', 'j'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['e'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['z'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ž'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['\u{17e}'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['i'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ĳ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['j'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['k'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['l'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['l', 'j'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ǉ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['m'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['n'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['n', 'j'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ǌ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['o'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['œ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['p'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['r'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['s'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ﬆ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['t'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ć'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['\u{107}'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['u'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['f'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ﬁ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ﬂ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['h'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['c'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['č'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['\u{10d}'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['d', 'ž'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ǆ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['d', '\u{17e}'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['š'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['\u{161}'],
+        case: Case::Lower,
+    },
 ];
 
-pub const LATIN_DIRTY_UNICODE: &[&[char]] = &[
-    &['A'],
-    &['B'],
-    &['V'],
-    &['G'],
-    &['D'],
-    &['Đ'],
-    &['Đ'],
-    &['Đ'],
-    &['Đ'],
-    &['E'],
-    &['Z'],
-    &['Ž'],
-    &['Ž'],
-    &['I'],
-    &['J'],
-    &['K'],
-    &['L'],
-    &['Ǉ'],
-    &['Ǉ'],
-    &['ǈ'],
-    &['ǈ'],
-    &['M'],
-    &['N'],
-    &['Ǌ'],
-    &['Ǌ'],
-    &['ǋ'],
-    &['ǋ'],
-    &['O'],
-    &['P'],
-    &['R'],
-    &['S'],
-    &['T'],
-    &['Ć'],
-    &['Ć'],
-    &['U'],
-    &['F'],
-    &['H'],
-    &['C'],
-    &['Č'],
-    &['Č'],
-    &['Ǆ'],
-    &['Ǆ'],
-    &['Ǆ'],
-    &['ǅ'],
-    &['ǅ'],
-    &['ǅ'],
-    &['Š'],
-    &['Š'],
-    &['a'],
-    &['a', 'e'],
-    &['b'],
-    &['v'],
-    &['g'],
-    &['d'],
-    &['đ'],
-    &['đ'],
-    &['e'],
-    &['z'],
-    &['ž'],
-    &['ž'],
-    &['i'],
-    &['i', 'j'],
-    &['j'],
-    &['k'],
-    &['l'],
-    &['ǉ'],
-    &['ǉ'],
-    &['m'],
-    &['n'],
-    &['ǌ'],
-    &['ǌ'],
-    &['o'],
-    &['o', 'e'],
-    &['p'],
-    &['r'],
-    &['s'],
-    &['š', 't'],
-    &['t'],
-    &['ć'],
-    &['ć'],
-    &['u'],
-    &['f'],
-    &['f', 'i'],
-    &['f', 'l'],
-    &['h'],
-    &['c'],
-    &['č'],
-    &['č'],
-    &['ǆ'],
-    &['ǆ'],
-    &['ǆ'],
-    &['š'],
-    &['š'],
+pub const LATIN_DIRTY_UNICODE: &[Character] = &[
+    Character {
+        value: &['A'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['B'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['V'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['G'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['D'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Đ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Đ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Đ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Đ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['E'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Z'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ž'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ž'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['I'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['J'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['K'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['L'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ǉ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ǉ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['ǈ'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['ǈ'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['M'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['N'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ǌ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ǌ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['ǋ'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['ǋ'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['O'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['P'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['R'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['S'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['T'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ć'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ć'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['U'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['F'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['H'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['C'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Č'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Č'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ǆ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ǆ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ǆ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['ǅ'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['ǅ'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['ǅ'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['Š'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Š'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['a'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['a', 'e'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['b'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['v'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['g'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['d'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['đ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['đ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['e'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['z'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ž'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ž'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['i'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['i', 'j'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['j'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['k'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['l'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ǉ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ǉ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['m'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['n'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ǌ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ǌ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['o'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['o', 'e'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['p'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['r'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['s'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['š', 't'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['t'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ć'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ć'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['u'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['f'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['f', 'i'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['f', 'l'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['h'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['c'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['č'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['č'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ǆ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ǆ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ǆ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['š'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['š'],
+        case: Case::Lower,
+    },
 ];
 
-pub const CYRILLIC_DIRTY: &[&[char]] = &[
-    &['А'],
-    &['Б'],
-    &['В'],
-    &['Г'],
-    &['Д'],
-    &['Ђ'],
-    &['Ђ'],
-    &['Ђ'],
-    &['Ђ'],
-    &['Е'],
-    &['З'],
-    &['Ж'],
-    &['Ж'],
-    &['И'],
-    &['Ј'],
-    &['К'],
-    &['Л'],
-    &['Љ'],
-    &['Љ'],
-    &['Љ'],
-    &['Љ'],
-    &['М'],
-    &['Н'],
-    &['Њ'],
-    &['Њ'],
-    &['Њ'],
-    &['Њ'],
-    &['О'],
-    &['П'],
-    &['Р'],
-    &['С'],
-    &['Т'],
-    &['Ћ'],
-    &['Ћ'],
-    &['У'],
-    &['Ф'],
-    &['Х'],
-    &['Ц'],
-    &['Ч'],
-    &['Ч'],
-    &['Џ'],
-    &['Џ'],
-    &['Џ'],
-    &['Џ'],
-    &['Џ'],
-    &['Џ'],
-    &['Ш'],
-    &['Ш'],
-    &['а'],
-    &['а', 'е'],
-    &['б'],
-    &['в'],
-    &['г'],
-    &['д'],
-    &['ђ'],
-    &['ђ'],
-    &['е'],
-    &['з'],
-    &['ж'],
-    &['ж'],
-    &['и'],
-    &['и', 'ј'],
-    &['ј'],
-    &['к'],
-    &['л'],
-    &['љ'],
-    &['љ'],
-    &['м'],
-    &['н'],
-    &['њ'],
-    &['њ'],
-    &['о'],
-    &['о', 'е'],
-    &['п'],
-    &['р'],
-    &['с'],
-    &['с', 'т'],
-    &['т'],
-    &['ћ'],
-    &['ћ'],
-    &['у'],
-    &['ф'],
-    &['ф', 'и'],
-    &['ф', 'л'],
-    &['х'],
-    &['ц'],
-    &['ч'],
-    &['ч'],
-    &['џ'],
-    &['џ'],
-    &['џ'],
-    &['ш'],
-    &['ш'],
+pub const CYRILLIC_DIRTY: &[Character] = &[
+    Character {
+        value: &['А'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Б'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['В'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Г'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Д'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ђ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ђ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ђ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ђ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Е'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['З'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ж'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ж'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['И'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ј'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['К'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Л'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Љ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Љ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Љ'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['Љ'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['М'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Н'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Њ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Њ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Њ'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['Њ'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['О'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['П'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Р'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['С'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Т'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ћ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ћ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['У'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ф'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Х'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ц'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ч'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ч'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Џ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Џ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Џ'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Џ'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['Џ'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['Џ'],
+        case: Case::Mixed,
+    },
+    Character {
+        value: &['Ш'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['Ш'],
+        case: Case::Upper,
+    },
+    Character {
+        value: &['а'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['а', 'е'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['б'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['в'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['г'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['д'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ђ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ђ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['е'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['з'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ж'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ж'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['и'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['и', 'ј'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ј'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['к'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['л'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['љ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['љ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['м'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['н'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['њ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['њ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['о'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['о', 'е'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['п'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['р'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['с'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['с', 'т'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['т'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ћ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ћ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['у'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ф'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ф', 'и'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ф', 'л'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['х'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ц'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ч'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ч'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['џ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['џ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['џ'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ш'],
+        case: Case::Lower,
+    },
+    Character {
+        value: &['ш'],
+        case: Case::Lower,
+    },
 ];
 
 pub struct DigraphException<'a> {
-    pub latin: &'a [&'a [char]],
-    pub latinized: &'a [&'a [char]],
-    pub cyrillic: &'a [&'a [char]],
+    pub latin: &'a [Character<'a>],
+    pub latinized: &'a [Character<'a>],
+    pub cyrillic: &'a [Character<'a>],
     pub exceptions: &'a [&'a str],
 }
 
 pub const DIGRAPH_EXCEPTIONS: &[DigraphException<'static>] = &[
     DigraphException {
         latin: &[
-            &['Đ'],
-            &['Ð'],
-            &['D', 'J'],
-            &['D', 'j'],
-            &['đ'],
-            &['d', 'j'],
+            Character {
+                value: &['Đ'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['Ð'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['D', 'J'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['D', 'j'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['đ'],
+                case: Case::Lower,
+            },
+            Character {
+                value: &['d', 'j'],
+                case: Case::Lower,
+            },
         ],
         latinized: &[
-            &['D', 'j'],
-            &['D', 'j'],
-            &['D', 'J'],
-            &['D', 'j'],
-            &['d', 'j'],
-            &['d', 'j'],
+            Character {
+                value: &['D', 'J'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['D', 'J'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['D', 'J'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['D', 'j'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['d', 'j'],
+                case: Case::Lower,
+            },
+            Character {
+                value: &['d', 'j'],
+                case: Case::Lower,
+            },
         ],
         cyrillic: &[
-            &['Д', 'ј'],
-            &['Д', 'ј'],
-            &['Д', 'Ј'],
-            &['Д', 'ј'],
-            &['д', 'ј'],
-            &['д', 'ј'],
+            Character {
+                value: &['Д', 'J'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['Д', 'J'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['Д', 'Ј'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['Д', 'ј'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['д', 'ј'],
+                case: Case::Lower,
+            },
+            Character {
+                value: &['д', 'ј'],
+                case: Case::Lower,
+            },
         ],
         exceptions: DIGRAPH_EXCEPTIONS_DJ,
     },
     DigraphException {
         latin: &[
-            &['D', 'Ž'],
-            &['Ǆ'],
-            &['D', '\u{17d}'],
-            &['D', 'ž'],
-            &['ǅ'],
-            &['D', '\u{17e}'],
-            &['d', 'ž'],
-            &['ǆ'],
+            Character {
+                value: &['D', 'Ž'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['Ǆ'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['D', '\u{17d}'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['D', 'ž'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['ǅ'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['D', '\u{17e}'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['d', 'ž'],
+                case: Case::Lower,
+            },
+            Character {
+                value: &['ǆ'],
+                case: Case::Lower,
+            },
         ],
         latinized: &[
-            &['D', 'Ž'],
-            &['D', 'Ž'],
-            &['D', 'Ž'],
-            &['D', 'ž'],
-            &['D', 'ž'],
-            &['D', 'ž'],
-            &['d', 'ž'],
-            &['d', 'ž'],
+            Character {
+                value: &['D', 'Ž'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['D', 'Ž'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['D', 'Ž'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['D', 'ž'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['D', 'ž'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['D', 'ž'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['d', 'ž'],
+                case: Case::Lower,
+            },
+            Character {
+                value: &['d', 'ž'],
+                case: Case::Lower,
+            },
         ],
         cyrillic: &[
-            &['Д', 'Ж'],
-            &['Д', 'Ж'],
-            &['Д', 'Ж'],
-            &['Д', 'ж'],
-            &['Д', 'ж'],
-            &['Д', 'ж'],
-            &['д', 'ж'],
-            &['д', 'ж'],
+            Character {
+                value: &['Д', 'Ж'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['Д', 'Ж'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['Д', 'Ж'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['Д', 'ж'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['Д', 'ж'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['Д', 'ж'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['д', 'ж'],
+                case: Case::Lower,
+            },
+            Character {
+                value: &['д', 'ж'],
+                case: Case::Lower,
+            },
         ],
         exceptions: DIGRAPH_EXCEPTIONS_DZ,
     },
     DigraphException {
         latin: &[
-            &['N', 'J'],
-            &['Ǌ'],
-            &['N', 'j'],
-            &['ǋ'],
-            &['n', 'j'],
-            &['ǌ'],
+            Character {
+                value: &['N', 'J'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['Ǌ'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['N', 'j'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['ǋ'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['n', 'j'],
+                case: Case::Lower,
+            },
+            Character {
+                value: &['ǌ'],
+                case: Case::Lower,
+            },
         ],
         latinized: &[
-            &['N', 'J'],
-            &['N', 'J'],
-            &['N', 'j'],
-            &['N', 'j'],
-            &['n', 'j'],
-            &['n', 'j'],
+            Character {
+                value: &['N', 'J'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['N', 'J'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['N', 'j'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['N', 'j'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['n', 'j'],
+                case: Case::Lower,
+            },
+            Character {
+                value: &['n', 'j'],
+                case: Case::Lower,
+            },
         ],
         cyrillic: &[
-            &['Н', 'Ј'],
-            &['Н', 'Ј'],
-            &['Н', 'ј'],
-            &['Н', 'ј'],
-            &['н', 'ј'],
-            &['н', 'ј'],
+            Character {
+                value: &['Н', 'Ј'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['Н', 'Ј'],
+                case: Case::Upper,
+            },
+            Character {
+                value: &['Н', 'ј'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['Н', 'ј'],
+                case: Case::Mixed,
+            },
+            Character {
+                value: &['н', 'ј'],
+                case: Case::Lower,
+            },
+            Character {
+                value: &['н', 'ј'],
+                case: Case::Lower,
+            },
         ],
         exceptions: DIGRAPH_EXCEPTIONS_NJ,
     },

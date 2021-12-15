@@ -5,6 +5,8 @@ use subslice::bmh;
 
 mod charmaps;
 
+use charmaps::{Case as LetterCase, Character};
+
 #[derive(Clone)]
 pub enum Charset {
     Latin,
@@ -13,8 +15,8 @@ pub enum Charset {
 }
 
 pub struct Transliterator {
-    charset_from: &'static [&'static [char]],
-    charset_into: &'static [&'static [char]],
+    charset_from: &'static [Character<'static>],
+    charset_into: &'static [Character<'static>],
     exceptions: bool,
     skip_digraph: bool,
     force_foreign: bool,
@@ -127,10 +129,10 @@ impl Transliterator {
         word: &[char],
         character: &'a [char],
         latinize: bool,
-    ) -> Result<Option<&'a [char]>, Error> {
+    ) -> Result<Option<&'a Character<'a>>, Error> {
         for exception in charmaps::DIGRAPH_EXCEPTIONS {
             for i in 0..exception.latin.len() {
-                if exception.latin[i] == character {
+                if exception.latin[i].value == character {
                     let mut lowercase: Vec<u8> = vec![0; word.len() * 4];
                     let mut cursor: usize = 0;
                     for letter in word {
@@ -141,9 +143,9 @@ impl Transliterator {
                     for e in exception.exceptions {
                         if bmh::find(&lowercase, e.as_bytes()).is_some() {
                             if latinize {
-                                return Ok(Some(exception.latinized[i]));
+                                return Ok(Some(&exception.latinized[i]));
                             } else {
-                                return Ok(Some(exception.cyrillic[i]));
+                                return Ok(Some(&exception.cyrillic[i]));
                             }
                         }
                     }
@@ -191,7 +193,9 @@ impl Transliterator {
             }
         }
         'outer: while cursor_in < chars.len() {
-            for (i, c) in self.charset_from.iter().enumerate().rev() {
+            'inner: for (i, Character { value: c, case: lc }) in
+                self.charset_from.iter().enumerate().rev()
+            {
                 if chars[cursor_in..].starts_with(c) {
                     if !self.skip_digraph && self.exceptions {
                         // If transliterating to latin8, transliterate exception too
@@ -199,14 +203,31 @@ impl Transliterator {
                             || self.charset_into == charmaps::LATIN_DIRTY_UNICODE;
                         // Start from bottom to catch digraphs first
                         if let Some(exception) = Self::digraph_exception(&chars, c, latinize)? {
-                            cursor_out += Self::chars_to_utf8(exception, &mut out[cursor_out..])?;
-                            cursor_in += exception.len();
+                            cursor_out +=
+                                Self::chars_to_utf8(exception.value, &mut out[cursor_out..])?;
+                            cursor_in += exception.value.len();
                             continue 'outer;
+                        }
+                    }
+                    // Check if digraph is preceded or followed by same case
+                    if lc == &LetterCase::Mixed {
+                        let prev_lower = if cursor_in > 0 {
+                            Some(chars[cursor_in - 1].is_lowercase())
+                        } else {
+                            None
+                        };
+                        let next_lower = if cursor_in < chars.len() - 1 {
+                            Some(chars[cursor_in + 1].is_lowercase())
+                        } else {
+                            None
+                        };
+                        if matches!((prev_lower, next_lower), (_, Some(false))) {
+                            continue 'inner;
                         }
                     }
                     // Exception is not found, proceed to transliterate
                     cursor_out +=
-                        Self::chars_to_utf8(self.charset_into[i], &mut out[cursor_out..])?;
+                        Self::chars_to_utf8(self.charset_into[i].value, &mut out[cursor_out..])?;
                     cursor_in += c.len();
                     continue 'outer;
                 }
@@ -266,8 +287,8 @@ mod tests {
         ("", "", true),
         ("1234567890", "1234567890", true),
         (
-            "ABVGDĐEŽZIJKLLjMNNjOPRSTĆUFHCČDžŠabvgdđežzijklljmnnjoprstćufhcčdžš",
-            "АБВГДЂЕЖЗИЈКЛЉМНЊОПРСТЋУФХЦЧЏШабвгдђежзијклљмнњопрстћуфхцчџш",
+            "A B V G D Đ E Ž Z I J K L Lj M N Nj O P R S T Ć U F H C Č Dž Š a b v g d đ e ž z i j k l lj m n nj o p r s t ć u f h c č dž š",
+            "А Б В Г Д Ђ Е Ж З И Ј К Л Љ М Н Њ О П Р С Т Ћ У Ф Х Ц Ч Џ Ш а б в г д ђ е ж з и ј к л љ м н њ о п р с т ћ у ф х ц ч џ ш",
             true,
         ),
         (
@@ -296,18 +317,18 @@ mod tests {
             true,
         ),
         (
-            "ABVGDĐÐDJDjEZŽŽIJKLLJǇLjǈMNNJǊNjǋOPRSTĆĆUFHCČČDŽǄDŽDžǅDžŠŠ",
-            "АБВГДЂЂЂЂЕЗЖЖИЈКЛЉЉЉЉМНЊЊЊЊОПРСТЋЋУФХЦЧЧЏЏЏЏЏЏШШ",
+            "A B V G D Đ Ð DJ Dj E Z Ž Ž I J K L LJ Ǉ Lj ǈ M N NJ Ǌ Nj ǋ O P R S T Ć Ć U F H C Č Č DŽ Ǆ DŽ Dž ǅ Dž Š Š",
+            "А Б В Г Д Ђ Ђ Ђ Ђ Е З Ж Ж И Ј К Л Љ Љ Љ Љ М Н Њ Њ Њ Њ О П Р С Т Ћ Ћ У Ф Х Ц Ч Ч Џ Џ Џ Џ Џ Џ Ш Ш",
             false,
         ),
         (
-            "aæbvgdđdjezžžiĳjklljǉmnnjǌoœprsﬆtććufﬁﬂhcččdžǆdžšš",
-            "ааебвгдђђезжжиијјклљљмнњњооепрссттћћуффифлхцччџџџшш",
+            "a æ b v g d đ dj e z ž ž i ĳ j k l lj ǉ m n nj ǌ o œ p r s ﬆ t ć ć u f ﬁ ﬂ h c č č dž ǆ dž š š",
+            "а ае б в г д ђ ђ е з ж ж и иј ј к л љ љ м н њ њ о ое п р с ст т ћ ћ у ф фи фл х ц ч ч џ џ џ ш ш",
             false,
         ),
         (
-            "ABVGDĐÐDJDjezžžiĳjklljǉMNNJǊNjǋOPRsﬆtććufﬁﬂhcččdžǄDŽDžǅDžŠŠ",
-            "АБВГДЂЂЂЂезжжиијјклљљМНЊЊЊЊОПРссттћћуффифлхцччџЏЏЏЏЏШШ",
+            "A B V G D Đ Ð DJ Dj e z ž ž i ĳ j k l lj ǉ M N NJ Ǌ Nj ǋ O P R s ﬆ t ć ć u f ﬁ ﬂ h c č č dž Ǆ DŽ Dž ǅ Dž Š Š",
+            "А Б В Г Д Ђ Ђ Ђ Ђ е з ж ж и иј ј к л љ љ М Н Њ Њ Њ Њ О П Р с ст т ћ ћ у ф фи фл х ц ч ч џ Џ Џ Џ Џ Џ Ш Ш",
             false,
         ),
     ];
@@ -342,7 +363,8 @@ mod tests {
                 &['đ'],
                 false
             )?
-            .unwrap(),
+            .unwrap()
+            .value,
             &['д', 'ј']
         );
         assert_eq!(
@@ -351,7 +373,8 @@ mod tests {
                 &['đ'],
                 true
             )?
-            .unwrap(),
+            .unwrap()
+            .value,
             &['d', 'j']
         );
         assert_eq!(
@@ -360,7 +383,8 @@ mod tests {
                 &['D', 'ž'],
                 false
             )?
-            .unwrap(),
+            .unwrap()
+            .value,
             &['Д', 'ж']
         );
         assert_eq!(
@@ -369,7 +393,8 @@ mod tests {
                 &['D', 'ž'],
                 true
             )?
-            .unwrap(),
+            .unwrap()
+            .value,
             &['D', 'ž']
         );
         assert_eq!(
@@ -378,7 +403,8 @@ mod tests {
                 &['N', 'J'],
                 false
             )?
-            .unwrap(),
+            .unwrap()
+            .value,
             &['Н', 'Ј']
         );
         assert_eq!(
@@ -387,7 +413,8 @@ mod tests {
                 &['N', 'J'],
                 true
             )?
-            .unwrap(),
+            .unwrap()
+            .value,
             &['N', 'J']
         );
         Ok(())
@@ -430,6 +457,55 @@ mod tests {
             ("példa", "пéлда"),
         ] {
             assert_eq!(expected, t.process_word(text)?);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_digraph_capitalization() -> Result<(), Error> {
+        let t_lat_cyr = Transliterator::new(Charset::Latin, Charset::Cyrillic, false, false, false);
+        let t_lat8_cyr =
+            Transliterator::new(Charset::LatinUnicode, Charset::Cyrillic, false, false, false);
+        //
+        let t_lat_lat8 =
+            Transliterator::new(Charset::Latin, Charset::LatinUnicode, false, false, false);
+        let t_lat8_lat =
+            Transliterator::new(Charset::LatinUnicode, Charset::Latin, false, false, false);
+        //
+        let t_cyr_lat = Transliterator::new(Charset::Cyrillic, Charset::Latin, false, false, false);
+        let t_cyr_lat8 =
+            Transliterator::new(Charset::Cyrillic, Charset::LatinUnicode, false, false, false);
+        for (latin, latin8, cyrillic) in vec![
+            // Љ
+            ("Ljubiša", "ǈubiša", "Љубиша"),
+            ("ljubiša", "ǉubiša", "љубиша"),
+            ("LJUBIŠA", "ǇUBIŠA", "ЉУБИША"),
+            ("Naljutiti", "Naǉutiti", "Наљутити"),
+            ("naljutiti", "naǉutiti", "наљутити"),
+            ("NALJUTITI", "NAǇUTITI", "НАЉУТИТИ"),
+            // Њ
+            ("Njiva", "ǋiva", "Њива"),
+            ("njiva", "ǌiva", "њива"),
+            ("NJIVA", "ǊIVA", "ЊИВА"),
+            ("Anja", "Aǌa", "Ања"),
+            ("anja", "aǌa", "ања"),
+            ("ANJA", "AǊA", "АЊА"),
+            // Џ
+            ("Džonatan", "ǅonatan", "Џонатан"),
+            ("džonatan", "ǆonatan", "џонатан"),
+            ("DŽONATAN", "ǄONATAN", "ЏОНАТАН"),
+            ("Midžor", "Miǆor", "Миџор"),
+            ("midžor", "miǆor", "миџор"),
+            ("MIDŽOR", "MIǄOR", "МИЏОР"),
+        ] {
+            assert_eq!(cyrillic, t_lat_cyr.process_word(latin)?);
+            assert_eq!(cyrillic, t_lat8_cyr.process_word(latin8)?);
+            //
+            assert_eq!(latin8, t_lat_lat8.process_word(latin)?);
+            assert_eq!(latin, t_lat8_lat.process_word(latin8)?);
+            //
+            assert_eq!(latin, t_cyr_lat.process_word(cyrillic)?);
+            assert_eq!(latin8, t_cyr_lat8.process_word(cyrillic)?);
         }
         Ok(())
     }
