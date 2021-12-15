@@ -12,20 +12,27 @@ fn version() {
 }
 
 fn help() {
-    version();
-    println!("{}", env!("CARGO_PKG_AUTHORS"));
+    println!("{}", env!("CARGO_PKG_DESCRIPTION"),);
     println!();
-    println!("Usage:");
-    println!("  -v, --version           show version and quit");
-    println!("  -h, --help              show usage help and quit");
+    println!("USAGE:");
+    println!("  {} [OPTIONS]", env!("CARGO_PKG_NAME"));
+    println!("  pandoc --filter {} [...]", env!("CARGO_PKG_NAME"));
+    println!();
+    println!("OPTIONS:");
     println!("  -i, --input <path>      read input from file");
+    println!("                          default: stdin");
     println!("  -o, --output <path>     write output to file");
+    println!("                          default: stdout");
     println!("  -f, --from <charset>    convert from character set");
+    println!("                          default: latin");
     println!("  -t, --into <charset>    convert to character set");
+    println!("                          default: cyrillic");
     println!("  -d, --skip-digraph      do not check for digraph exceptions");
     println!("  -u, --force-foreign     process words with foreign and mixed characters");
-    println!("  -l, --force-links       process hyperlinks and email addresses");
-    println!("  -p, --pandoc-filter     run in Pandoc JSON filter mode");
+    println!("  -l, --force-links       process hyperlinks, email addresses and units");
+    println!("  -p, --pandoc-filter     run in Pandoc JSON pipe filter mode");
+    println!("  -v, --version           show version and quit");
+    println!("  -h, --help              show usage help and quit");
     println!();
     println!("Character sets:");
     println!("  latin,    lat,  l       Serbian Latin");
@@ -33,11 +40,11 @@ fn help() {
     println!("  cyrillic, cyr,  c       Serbian Cyrillic");
     println!();
     println!("Pandoc filter environment variables:");
-    println!("  CHARS_FROM=<charset>    same as --from");
-    println!("  CHARS_INTO=<charset>    same as --into");
-    println!("  SKIP_DIGRAPH            same as --skip-digraph");
-    println!("  FORCE_FOREIGN           same as --force-foreign");
-    println!("  FORCE_LINKS             same as --force-links");
+    println!("  CHARS_FROM=<charset>");
+    println!("  CHARS_INTO=<charset>");
+    println!("  SKIP_DIGRAPH");
+    println!("  FORCE_FOREIGN");
+    println!("  FORCE_LINKS");
 }
 
 pub enum Error {

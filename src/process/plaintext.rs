@@ -24,6 +24,7 @@ impl PlaintextProcessor {
                 Box::from(io::stdin())
             },
             output: if let Some(p) = output {
+                // TODO: Open file later for in-place edits
                 Box::from(File::create(p)?)
             } else {
                 Box::from(io::stdout())

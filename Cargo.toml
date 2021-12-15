@@ -1,8 +1,10 @@
 [package]
-name = "translit"
+name = "translitrs"
 version = "0.2.0"
 edition = "2021"
 authors = ["Filip Parag <filip@parag.rs>"]
+license = "MIT"
+description = "Transliteration utility for Serbian language"
 
 [dependencies]
 subslice = ">=0.2.3"
