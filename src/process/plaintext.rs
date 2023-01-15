@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{self, Read, Write};
 use std::path::PathBuf;
 
-use super::{Error, Processor};
+use super::{Error, FileProcessor};
 use crate::transliterate::Transliterator;
 
 pub struct PlaintextProcessor {
@@ -34,7 +34,7 @@ impl PlaintextProcessor {
     }
 }
 
-impl Processor for PlaintextProcessor {
+impl FileProcessor for PlaintextProcessor {
     fn run(&mut self) -> Result<(), Error> {
         let mut input_string = String::new();
         self.input.read_to_string(&mut input_string)?;

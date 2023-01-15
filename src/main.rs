@@ -4,7 +4,7 @@ use std::{env, fmt, path};
 mod process;
 mod transliterate;
 
-use process::{PandocProcessor, PlaintextProcessor, Processor};
+use process::{FileProcessor, PandocProcessor, PlaintextProcessor};
 use transliterate::{Charset, Transliterator};
 
 fn version() {
@@ -172,7 +172,7 @@ fn parse_args() -> Result<Arguments, Error> {
     })
 }
 
-fn regular_mode() -> Result<Box<dyn Processor>, Error> {
+fn regular_mode() -> Result<Box<dyn FileProcessor>, Error> {
     let args = parse_args()?;
     Ok(match args.pandoc_mode {
         true => Box::new(PandocProcessor::new(args.transliterator)),
@@ -180,7 +180,7 @@ fn regular_mode() -> Result<Box<dyn Processor>, Error> {
     })
 }
 
-fn pandoc_mode() -> Result<Box<dyn Processor>, Error> {
+fn pandoc_mode() -> Result<Box<dyn FileProcessor>, Error> {
     fn parse_env_charset(key: &str, default: Charset) -> Result<Charset, Error> {
         if let Ok(value) = env::var(key) {
             if !value.is_empty() {
@@ -207,7 +207,7 @@ fn pandoc_mode() -> Result<Box<dyn Processor>, Error> {
 
 fn main() -> Result<(), Error> {
     // Detect if called by Pandoc as a JSON filter
-    let mut proc: Box<dyn Processor> = if let Ok(value) = env::var("PANDOC_VERSION") {
+    let mut proc: Box<dyn FileProcessor> = if let Ok(value) = env::var("PANDOC_VERSION") {
         if !value.is_empty() {
             pandoc_mode()
         } else {

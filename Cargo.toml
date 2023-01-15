@@ -1,20 +1,24 @@
 [package]
 name = "translitrs"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 authors = ["Filip Parag <filip@parag.rs>"]
 license = "MIT"
 description = "Transliteration utility for Serbian language"
 readme = "README.md"
-homepage = "https://github.com/filiparag/translitRS"
+repository = "https://github.com/filiparag/translitRS"
 keywords = ["transliteration", "filter", "text", "pandoc"]
 categories = ["command-line-utilities", "text-processing"]
 include = ["/src"]
 maintenance = { status = "passively-maintained" }
 rust-version = "1.57"
 
+[lib]
+name = "translitrs"
+path = "src/lib.rs"
+
 [dependencies]
 subslice = ">=0.2.3"
-regex = ">=1.5.4"
+regex = ">=1.7.1"
 lazy_static = ">=1.4.0"
-pandoc_ast = ">=0.8.0"
+pandoc_ast = ">=0.8.2"

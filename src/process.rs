@@ -34,6 +34,6 @@ impl From<transliterate::Error> for Error {
     }
 }
 
-pub trait Processor {
+pub trait FileProcessor {
     fn run(&mut self) -> Result<(), Error>;
 }

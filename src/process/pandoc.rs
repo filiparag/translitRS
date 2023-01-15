@@ -2,7 +2,7 @@ use std::io::{self, Read, Write};
 
 use pandoc_ast::{self, Inline, MutVisitor};
 
-use super::{Error, Processor};
+use super::{Error, FileProcessor};
 use crate::transliterate::Transliterator;
 
 pub struct PandocProcessor {
@@ -32,7 +32,7 @@ impl PandocProcessor {
     }
 }
 
-impl Processor for PandocProcessor {
+impl FileProcessor for PandocProcessor {
     fn run(&mut self) -> Result<(), Error> {
         let mut input_string = String::new();
         self.input.read_to_string(&mut input_string)?;
