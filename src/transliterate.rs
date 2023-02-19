@@ -1,6 +1,6 @@
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::{cmp, fmt, str, string};
+use std::{cmp, error, fmt, str, string};
 use subslice::bmh;
 
 mod charmaps;
@@ -52,6 +52,8 @@ impl fmt::Display for Error {
     }
 }
 
+impl error::Error for Error {}
+
 impl Default for Transliterator {
     fn default() -> Self {
         Self {
@@ -65,7 +67,27 @@ impl Default for Transliterator {
     }
 }
 
+#[allow(unused)]
 impl Transliterator {
+    /// Returns string transliterator
+    ///
+    /// # Arguments
+    ///
+    /// * `from` - Transliterate words from this charset
+    /// * `into` - Transliterate words into this charset
+    /// * `skip_digraph` - Skip checking for digraph exceptions
+    /// * `force_foreign` - Force transliterate foreign words (ie. words that contain characters not found in `from` charset)
+    /// * `force_links` - Force transliterate URLs
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// // Create transliterator from Latin to Cyrillic with all features
+    /// use translitrs::{Transliterator, Charset};
+    /// let t = Transliterator::new(
+    ///     Charset::Latin, Charset::Cyrillic, false, false, false
+    /// );
+    /// ```
     pub fn new(
         from: Charset,
         into: Charset,
@@ -179,6 +201,25 @@ impl Transliterator {
             || RE_MEASUREMENT.is_match(word)
     }
 
+    /// Try transliterating a single word (without spaces).
+    /// Fails if provided string is not valid UTF-8.
+    ///
+    /// # Arguments
+    ///
+    /// * `word` - Word to transliterate
+    /// # Examples
+    ///
+    /// ```
+    /// use translitrs::{Transliterator, Charset};
+    ///
+    /// // Transliterate Latin word to Cyrillic
+    /// let t = Transliterator::new(Charset::Latin, Charset::Cyrillic, false, false, false);
+    /// assert_eq!(t.process_word("Ljubičica").unwrap(), "Љубичица".to_owned());
+    ///
+    /// // Transliterate Cyrillic word to Latin Unicode
+    /// let t = Transliterator::new(Charset::Cyrillic, Charset::LatinUnicode, false, false, false);
+    /// assert_eq!(t.process_word("Љубичица").unwrap(), "ǈubičica".to_owned());
+    /// ```
     pub fn process_word(&self, word: &str) -> Result<String, Error> {
         let mut out: Vec<u8> = vec![0; word.len() * 4];
         let chars = word.chars().into_iter().collect::<Vec<char>>();
@@ -246,6 +287,24 @@ impl Transliterator {
         Ok(out)
     }
 
+    /// Try transliterating arbitrary text.
+    /// Fails if provided string is not valid UTF-8.
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - Text to transliterate
+    /// # Examples
+    ///
+    /// ```
+    /// use translitrs::{Transliterator, Charset};
+    ///
+    /// // Transliterate Latin sentence to Cyrillic without digraph exceptions
+    /// let t = Transliterator::new(Charset::Latin, Charset::Cyrillic, true, false, false);
+    /// assert_eq!(
+    ///     t.process_word("Konjugacija je promena glagola po vremenima i licima.").unwrap(),
+    ///     "Коњугација је промена глагола по временима и лицима.".to_owned()
+    /// );
+    /// ```
     pub fn process<S: AsRef<str>>(&self, input: S) -> Result<String, Error> {
         let input = input.as_ref();
         let mut output = String::with_capacity(input.len());
