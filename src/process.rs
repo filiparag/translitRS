@@ -1,13 +1,16 @@
-use std::{fmt, io};
+use std::{error, fmt, io};
 
 use crate::transliterate;
 
+#[cfg(feature = "pandoc")]
 mod pandoc;
 mod plaintext;
 
+#[cfg(feature = "pandoc")]
 pub use self::pandoc::PandocProcessor;
 pub use plaintext::PlaintextProcessor;
 
+#[derive(Debug)]
 pub enum Error {
     Io(io::Error),
     Processing(transliterate::Error),
@@ -21,6 +24,8 @@ impl fmt::Display for Error {
         }
     }
 }
+
+impl error::Error for Error {}
 
 impl From<io::Error> for Error {
     fn from(error: io::Error) -> Self {

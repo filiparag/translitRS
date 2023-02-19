@@ -1,10 +1,12 @@
 use std::str::FromStr;
-use std::{env, fmt, path};
+use std::{env, error, fmt, path};
 
 mod process;
 mod transliterate;
 
-use process::{FileProcessor, PandocProcessor, PlaintextProcessor};
+#[cfg(feature = "pandoc")]
+use process::PandocProcessor;
+use process::{FileProcessor, PlaintextProcessor};
 use transliterate::{Charset, Transliterator};
 
 fn version() {
@@ -30,6 +32,7 @@ fn help() {
     println!("  -d, --skip-digraph      do not check for digraph exceptions");
     println!("  -u, --force-foreign     process words with foreign and mixed characters");
     println!("  -l, --force-links       process hyperlinks, email addresses and units");
+    #[cfg(feature = "pandoc")]
     println!("  -p, --pandoc-filter     run in Pandoc JSON pipe filter mode");
     println!("  -v, --version           show version and quit");
     println!("  -h, --help              show usage help and quit");
@@ -47,6 +50,7 @@ fn help() {
     println!("  FORCE_LINKS");
 }
 
+#[derive(Debug)]
 pub enum Error {
     ArgumentMissing,
     ArgumentUnknown,
@@ -60,7 +64,7 @@ impl From<process::Error> for Error {
     }
 }
 
-impl fmt::Debug for Error {
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::ArgumentMissing => writeln!(f, "Missing an argument"),
@@ -70,6 +74,8 @@ impl fmt::Debug for Error {
         }
     }
 }
+
+impl error::Error for Error {}
 
 impl std::str::FromStr for Charset {
     type Err = Error;
@@ -88,6 +94,7 @@ struct Arguments {
     transliterator: Transliterator,
     input: Option<path::PathBuf>,
     output: Option<path::PathBuf>,
+    #[cfg(feature = "pandoc")]
     pandoc_mode: bool,
 }
 
@@ -100,6 +107,7 @@ fn parse_args() -> Result<Arguments, Error> {
     let mut skip_digraph = false;
     let mut force_foreign = false;
     let mut force_links = false;
+    #[cfg(feature = "pandoc")]
     let mut pandoc_mode = false;
 
     let mut arguments = env::args();
@@ -145,6 +153,7 @@ fn parse_args() -> Result<Arguments, Error> {
             "-l" | "--force-links" => {
                 force_links = true;
             }
+            #[cfg(feature = "pandoc")]
             "-p" | "--pandoc-filter" => {
                 pandoc_mode = true;
             }
@@ -168,18 +177,23 @@ fn parse_args() -> Result<Arguments, Error> {
         ),
         input,
         output,
+        #[cfg(feature = "pandoc")]
         pandoc_mode,
     })
 }
 
 fn regular_mode() -> Result<Box<dyn FileProcessor>, Error> {
     let args = parse_args()?;
-    Ok(match args.pandoc_mode {
+    #[cfg(not(feature = "pandoc"))]
+    return Ok(Box::new(PlaintextProcessor::new(args.input, args.output, args.transliterator)?));
+    #[cfg(feature = "pandoc")]
+    return Ok(match args.pandoc_mode {
         true => Box::new(PandocProcessor::new(args.transliterator)),
         false => Box::new(PlaintextProcessor::new(args.input, args.output, args.transliterator)?),
-    })
+    });
 }
 
+#[cfg(feature = "pandoc")]
 fn pandoc_mode() -> Result<Box<dyn FileProcessor>, Error> {
     fn parse_env_charset(key: &str, default: Charset) -> Result<Charset, Error> {
         if let Ok(value) = env::var(key) {
@@ -206,16 +220,21 @@ fn pandoc_mode() -> Result<Box<dyn FileProcessor>, Error> {
 }
 
 fn main() -> Result<(), Error> {
-    // Detect if called by Pandoc as a JSON filter
-    let mut proc: Box<dyn FileProcessor> = if let Ok(value) = env::var("PANDOC_VERSION") {
-        if !value.is_empty() {
-            pandoc_mode()
+    #[cfg(not(feature = "pandoc"))]
+    regular_mode()?.run()?;
+    #[cfg(feature = "pandoc")]
+    {
+        // Detect if called by Pandoc as a JSON filter
+        let mut proc: Box<dyn FileProcessor> = if let Ok(value) = env::var("PANDOC_VERSION") {
+            if !value.is_empty() {
+                pandoc_mode()
+            } else {
+                regular_mode()
+            }
         } else {
             regular_mode()
-        }
-    } else {
-        regular_mode()
-    }?;
-    proc.run()?;
+        }?;
+        proc.run()?;
+    }
     Ok(())
 }

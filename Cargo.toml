@@ -1,6 +1,6 @@
 [package]
 name = "translitrs"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 authors = ["Filip Parag <filip@parag.rs>"]
 license = "MIT"
@@ -17,8 +17,12 @@ rust-version = "1.57"
 name = "translitrs"
 path = "src/lib.rs"
 
+[features]
+default = []
+pandoc = ["dep:pandoc_ast"]
+
 [dependencies]
-subslice = ">=0.2.3"
-regex = ">=1.7.1"
-lazy_static = ">=1.4.0"
-pandoc_ast = ">=0.8.2"
+subslice = "0.2"
+regex = "1.7"
+lazy_static = "1.4"
+pandoc_ast = { version = "0.8", optional = true }
